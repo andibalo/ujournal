@@ -28,7 +28,8 @@ import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    journalEntryViewModel: JournalEntryViewModel = viewModel()
+    journalEntryViewModel: JournalEntryViewModel = viewModel(),
+    onProfileClick : () -> Unit = {},
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -49,8 +50,7 @@ fun HomeScreen(
                     IconButton(onClick = { /* Do something */ }) {
                         Icon(Icons.Filled.Search, contentDescription = "Search")
                     }
-                    // TODO: implement navigate to profile screen
-                    IconButton(onClick = { /* Do something */ }) {
+                    IconButton(onClick = onProfileClick) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile")
                     }
                 }

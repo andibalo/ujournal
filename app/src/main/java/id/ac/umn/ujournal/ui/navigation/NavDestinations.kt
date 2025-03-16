@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
@@ -38,4 +39,23 @@ object Map : UJournalDestination {
     override val route = "map"
 }
 
+object Profile : UJournalDestination {
+    override val icon = Icons.Filled.AccountCircle
+    override val name = "Profile"
+    override val route = "profile"
+}
+
+object Login : UJournalDestination {
+    override val icon = Icons.Filled.AccountCircle
+    override val name = "Login"
+    override val route = "login"
+}
+
+object Register : UJournalDestination {
+    override val icon = Icons.Filled.AccountCircle
+    override val name = "Register"
+    override val route = "register"
+}
+
 val bottomTabRowScreens = listOf(Home, Calendar, Media, Map)
+val uJournalAppScreens = listOf(Home, Calendar, Media, Map, Profile, Login, Register)
