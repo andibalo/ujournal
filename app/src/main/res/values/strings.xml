@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">UJournal</string>
+    <string name="home_screen">Home</string>
+    <string name="calendar_screen">Calendar</string>
+    <string name="media_screen">Media</string>
+    <string name="map_screen">Atlas</string>
+</resources>
