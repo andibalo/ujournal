@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
+import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import java.time.LocalDateTime
 
 @Composable
@@ -42,9 +43,10 @@ fun JournalEntryItem(
         ) {
             Column {
                 val formattedTime = createdAt.format(HourTimeFormatter24)
+                val formattedDate = createdAt.format(ddMMMMyyyyDateTimeFormatter)
 
                 Text(
-                    text = formattedTime,
+                    text =  formattedDate + ", " +formattedTime,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(

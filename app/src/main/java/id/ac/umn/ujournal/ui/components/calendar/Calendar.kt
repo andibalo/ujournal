@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,10 +49,6 @@ import java.time.LocalDate
 import java.time.Year
 import java.time.YearMonth
 
-private val primaryColor = Color.Black.copy(alpha = 0.9f)
-private val selectionColor = primaryColor
-private val continuousSelectionColor = Color.LightGray.copy(alpha = 0.3f)
-
 @Composable
 fun Calendar(
     journalEntries: List<JournalEntry> = emptyList(),
@@ -64,38 +63,39 @@ fun Calendar(
     var selectedDate : LocalDate? by remember { mutableStateOf(null) }
     val daysOfWeek = remember { daysOfWeek() }
 
-    MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(primary = primaryColor)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White),
-        ) {
-            Column {
-                val state = rememberCalendarState(
-                    startMonth = startMonth,
-                    endMonth = endMonth,
-                    firstVisibleMonth = currentMonth,
-                    firstDayOfWeek = daysOfWeek.first(),
-                )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+    ) {
+        Column {
+            val state = rememberCalendarState(
+                startMonth = startMonth,
+                endMonth = endMonth,
+                firstVisibleMonth = currentMonth,
+                firstDayOfWeek = daysOfWeek.first(),
+            )
 
-                VerticalCalendar(
-                    state = state,
-                    contentPadding = PaddingValues(bottom = 100.dp),
-                    dayContent = { value ->
-                        Day(
-                            value,
-                            today = today,
-                            selectedDate = selectedDate,
-                        ) { day ->
-                                selectedDate = day.date
-                        }
-                    },
-                    monthHeader = { month -> MonthHeader(month) },
+            // TODO: create logic to get journal entries on date select
 
-                )
-            }
+            VerticalCalendar(
+                state = state,
+                contentPadding = PaddingValues(bottom = 100.dp),
+                dayContent = { value ->
+                    Day(
+                        value,
+                        today = today,
+                        selectedDate = selectedDate,
+                        shouldShowBottomIndicator = journalEntries.any { it.createdAt.toLocalDate() == value.date }
+                    ) { day ->
+                            selectedDate = day.date
+                    }
+                },
+                monthHeader = { month -> MonthHeader(month) },
 
+            )
         }
+
     }
 }
 
@@ -104,6 +104,7 @@ private fun Day(
     day: CalendarDay,
     today: LocalDate,
     selectedDate: LocalDate?,
+    shouldShowBottomIndicator: Boolean = false,
     onClick: (CalendarDay) -> Unit,
 ) {
     var textColor = Color.Transparent
@@ -117,17 +118,29 @@ private fun Day(
                 day = day,
                 today = today,
                 selectedDate = selectedDate,
-                selectionColor = selectionColor,
+                selectionColor = MaterialTheme.colorScheme.primary,
             ) { textColor = it }
         ,
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = day.date.dayOfMonth.toString(),
-            color = textColor,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = day.date.dayOfMonth.toString(),
+                color = textColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            if(shouldShowBottomIndicator){
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
+        }
     }
 }
 
