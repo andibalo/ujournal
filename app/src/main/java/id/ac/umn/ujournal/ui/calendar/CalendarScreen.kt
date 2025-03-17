@@ -42,9 +42,9 @@ fun CalendarScreen(
                 showBackButton = false
             )
         },
-    ) { padding: PaddingValues ->
+    ) { innerPadding: PaddingValues ->
         Column (
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
            Calendar(
                journalEntries = journalEntryViewModel.journalEntries

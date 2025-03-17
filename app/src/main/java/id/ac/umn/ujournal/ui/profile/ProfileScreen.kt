@@ -47,9 +47,9 @@ fun ProfileScreen(
                     }
             )
         },
-    ) { padding: PaddingValues ->
+    ) { innerPadding: PaddingValues ->
         Column(
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
           Button(onClick = onLogoutButtonClick) {
               Text(text = "Logout")

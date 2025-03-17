@@ -64,9 +64,9 @@ fun HomeScreen(
             }
         },
         floatingActionButtonPosition = FabPosition.End,
-    ) { padding: PaddingValues ->
+    ) { innerPadding: PaddingValues ->
         Column (
-            modifier = Modifier.padding(padding).fillMaxSize(),
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
             JournalEntryList(
                 list = journalEntryViewModel.journalEntries,

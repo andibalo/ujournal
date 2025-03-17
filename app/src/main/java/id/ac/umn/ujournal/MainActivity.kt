@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
@@ -63,7 +64,7 @@ fun UJournalApp() {
                 )
             },
 
-        ) { innerPadding ->
+        ) { innerPadding: PaddingValues ->
             UJournalNavHost(
                 navController = navController,
                 modifier = Modifier.padding(innerPadding)

@@ -52,11 +52,11 @@ fun MediaScreen(
             )
         },
 
-    ) { padding: PaddingValues ->
+    ) { innerPadding: PaddingValues ->
         Surface {
             Column(
                 modifier = Modifier
-                    .padding(padding)
+                    .padding(top = innerPadding.calculateTopPadding())
                     .fillMaxSize()
             ) {
 
