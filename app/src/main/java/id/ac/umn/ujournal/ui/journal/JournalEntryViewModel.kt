@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.ui.components.journalentry
+package id.ac.umn.ujournal.ui.journal
 
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
@@ -12,8 +12,12 @@ class JournalEntryViewModel : ViewModel() {
         get() = _journalEntries
 
 
-    fun remove(item: JournalEntry) {
-        _journalEntries.remove(item)
+    fun addJournalEntry(entry: JournalEntry) {
+        _journalEntries.add(0,entry)
+    }
+
+    fun remove() {
+        _journalEntries.remove(_journalEntries.get(0))
     }
 }
 
@@ -30,7 +34,7 @@ fun createTestJournalEntry(
         id = id,
         title = title,
         description = description,
-        picture = picture,
+        imageURI = picture,
         geotag = geotag,
         createdAt = createdAt,
         updatedAt = updatedAt

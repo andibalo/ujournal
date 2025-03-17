@@ -15,7 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.BottomNavigationBar
+import id.ac.umn.ujournal.ui.navigation.CreateJournalEntry
 import id.ac.umn.ujournal.ui.navigation.Home
+import id.ac.umn.ujournal.ui.navigation.Login
+import id.ac.umn.ujournal.ui.navigation.Profile
+import id.ac.umn.ujournal.ui.navigation.Register
 import id.ac.umn.ujournal.ui.navigation.UJournalNavHost
 import id.ac.umn.ujournal.ui.navigation.uJournalAppScreens
 import id.ac.umn.ujournal.ui.theme.UJournalTheme
@@ -46,24 +50,8 @@ fun UJournalApp() {
         // Change the variable to this and use home as a backup screen if this returns null
         val currentScreen = uJournalAppScreens.find { it.route == currentDestination?.route } ?: Home
 
-        when (currentScreen.route) {
-            "profile" -> {
-                bottomBarState.value = false
-                topBarState.value = false
-            }
-            "login" -> {
-                bottomBarState.value = false
-                topBarState.value = false
-            }
-            "register" -> {
-                bottomBarState.value = false
-                topBarState.value = false
-            }
-            else -> {
-                bottomBarState.value = true
-                topBarState.value = true
-            }
-        }
+        bottomBarState.value = shouldShowBottomNavBar(currentScreen.route)
+        topBarState.value = shouldShowTopAppBar(currentScreen.route)
 
         Scaffold(
             modifier = Modifier
@@ -80,6 +68,47 @@ fun UJournalApp() {
                 navController = navController,
                 modifier = Modifier.padding(innerPadding)
             )
+        }
+    }
+}
+
+
+fun shouldShowBottomNavBar(route : String) : Boolean {
+    when (route) {
+        Profile.route -> {
+            return false
+        }
+        Login.route -> {
+            return false
+        }
+        Register.route -> {
+            return false
+        }
+        CreateJournalEntry.route -> {
+            return false
+        }
+        else -> {
+            return true
+        }
+    }
+}
+
+fun shouldShowTopAppBar(route : String) : Boolean {
+    when (route) {
+        Profile.route -> {
+            return false
+        }
+        Login.route -> {
+            return false
+        }
+        Register.route -> {
+            return false
+        }
+        CreateJournalEntry.route -> {
+            return false
+        }
+        else -> {
+            return true
         }
     }
 }

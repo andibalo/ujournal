@@ -14,31 +14,29 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.ac.umn.ujournal.ui.components.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryList
-import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryViewModel
+import id.ac.umn.ujournal.ui.journal.JournalEntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
+    onFABClick : () -> Unit = {},
 ) {
+
+    // TODO: list not recomposing after adding new journal entry from create journal entry screen
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
+            UJournalTopAppBar(
                 title = {
                     // TODO:  make dynamic
                     Text(
@@ -58,7 +56,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton (
-                onClick = {  },
+                onClick = onFABClick,
                 shape = CircleShape
                 ) {
                 Icon(Icons.Filled.Add, "Add new journal entry floating action button")
@@ -69,7 +67,6 @@ fun HomeScreen(
         Box(
             modifier = Modifier.padding(padding).fillMaxSize(),
         ) {
-
             JournalEntryList(
                 list = journalEntryViewModel.journalEntries,
                 modifier = Modifier.fillMaxSize()

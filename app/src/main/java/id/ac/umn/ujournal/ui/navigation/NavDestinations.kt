@@ -57,5 +57,11 @@ object Register : UJournalDestination {
     override val route = "register"
 }
 
+object CreateJournalEntry : UJournalDestination {
+    override val icon = Icons.Filled.AccountCircle
+    override val name = "Create Journal Entry"
+    override val route = "journal-entry/create"
+}
+
 val bottomTabRowScreens = listOf(Home, Calendar, Media, Map)
-val uJournalAppScreens = listOf(Home, Calendar, Media, Map, Profile, Login, Register)
+val uJournalAppScreens = listOf(Home, Calendar, Media, Map, Profile, Login, Register, CreateJournalEntry)

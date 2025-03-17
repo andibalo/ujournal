@@ -10,6 +10,7 @@ import id.ac.umn.ujournal.ui.auth.LoginScreen
 import id.ac.umn.ujournal.ui.auth.RegisterScreen
 import id.ac.umn.ujournal.ui.calendar.CalendarScreen
 import id.ac.umn.ujournal.ui.home.HomeScreen
+import id.ac.umn.ujournal.ui.journal.CreateJournalEntryScreen
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
 import id.ac.umn.ujournal.ui.profile.ProfileScreen
@@ -43,6 +44,9 @@ fun UJournalNavHost(
                 onProfileClick = {
                     navController.navigateSingleTopTo(Profile.route)
                 },
+                onFABClick = {
+                    navController.navigateSingleTopTo(CreateJournalEntry.route)
+                },
             )
         }
         composable(route = Calendar.route) {
@@ -64,6 +68,15 @@ fun UJournalNavHost(
                 onLogoutButtonClick = {
                     navController.navigateSingleTopTo(Login.route)
                 }
+            )
+        }
+        composable(route = CreateJournalEntry.route) {
+            CreateJournalEntryScreen(
+                onBackButtonClick = {
+                    if (navController.previousBackStackEntry != null) {
+                        navController.navigateUp()
+                    }
+                },
             )
         }
     }
