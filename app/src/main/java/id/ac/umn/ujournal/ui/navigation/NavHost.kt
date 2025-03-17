@@ -56,7 +56,11 @@ fun UJournalNavHost(
             )
         }
         composable(route = Calendar.route) {
-            CalendarScreen()
+            CalendarScreen(
+                onProfileClick = {
+                    navController.navigateSingleTopTo(Profile.route)
+                },
+            )
         }
         composable(route = Media.route) {
             MediaScreen(
