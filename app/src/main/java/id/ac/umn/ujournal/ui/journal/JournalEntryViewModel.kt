@@ -25,7 +25,7 @@ fun createTestJournalEntry(
     id: UUID = UUID.randomUUID(),
     title: String = "Test Journal Entry",
     description: String = "This is a test journal entry.",
-    picture: String = "https://example.com/test_picture.jpg",
+    picture: String = "https://picsum.photos/300",
     geotag: List<String> = listOf("40.7128° N", "74.0060° W"),
     createdAt: LocalDateTime = LocalDateTime.now(),
     updatedAt: LocalDateTime = LocalDateTime.now()

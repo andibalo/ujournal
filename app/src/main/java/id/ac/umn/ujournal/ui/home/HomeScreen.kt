@@ -1,6 +1,6 @@
 package id.ac.umn.ujournal.ui.home
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -51,7 +51,8 @@ fun HomeScreen(
                     IconButton(onClick = onProfileClick) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile")
                     }
-                }
+                },
+                showBackButton = false
             )
         },
         floatingActionButton = {
@@ -64,7 +65,7 @@ fun HomeScreen(
         },
         floatingActionButtonPosition = FabPosition.End,
     ) { padding: PaddingValues ->
-        Box(
+        Column (
             modifier = Modifier.padding(padding).fillMaxSize(),
         ) {
             JournalEntryList(

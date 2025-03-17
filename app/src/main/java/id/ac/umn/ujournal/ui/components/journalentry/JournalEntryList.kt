@@ -27,6 +27,7 @@ fun JournalEntryList(
             JournalEntryItem(
                 title = entry.title,
                 description = entry.description,
+                imageURI = entry.imageURI,
                 createdAt = entry.createdAt,
                 modifier = Modifier
                     .fillMaxWidth()

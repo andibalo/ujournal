@@ -26,8 +26,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun RegisterScreen(
-    onLoginClick: () -> Unit = {}
+    onLoginClick: () -> Unit = {},
+    navigateToHomeScreen: () -> Unit = {}
 ) {
+    var firstNameInput by remember { mutableStateOf("") }
+    var lastNameInput by remember { mutableStateOf("") }
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var confirmPasswordInput by remember { mutableStateOf("") }
@@ -51,6 +54,18 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
+                value = firstNameInput,
+                onValueChange = { firstNameInput = it },
+                label = { Text("First Name") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = lastNameInput,
+                onValueChange = { lastNameInput = it },
+                label = { Text("Last Name") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
                 value = emailInput,
                 onValueChange = { emailInput = it },
                 label = { Text("Email") },
@@ -72,7 +87,11 @@ fun RegisterScreen(
             Button(
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { /*TODO : Implement register functionality*/ }
+                onClick = {
+                    /*TODO : Implement register functionality*/
+
+                    navigateToHomeScreen()
+                }
             ) {
                 Text(text = "Register")
             }

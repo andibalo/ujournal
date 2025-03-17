@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
-    onSignUpClick: () -> Unit = {}
+    onSignUpClick: () -> Unit = {},
+    navigateToHomeScreen: () -> Unit = {}
 ) {
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
@@ -65,7 +66,11 @@ fun LoginScreen(
             Button(
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { /*TODO : Implement login functionality*/ }
+                onClick = {
+                    /*TODO : Implement login functionality*/
+
+                    navigateToHomeScreen()
+                }
             ) {
                 Text(text = "Login")
             }

@@ -30,6 +30,9 @@ fun UJournalNavHost(
                 onSignUpClick = {
                     navController.navigateSingleTopTo(Register.route)
                 },
+                navigateToHomeScreen = {
+                    navController.navigateSingleTopTo(Home.route)
+                }
             )
         }
         composable(route = Register.route) {
@@ -37,6 +40,9 @@ fun UJournalNavHost(
                 onLoginClick = {
                     navController.navigateSingleTopTo(Login.route)
                 },
+                navigateToHomeScreen = {
+                    navController.navigateSingleTopTo(Home.route)
+                }
             )
         }
         composable(route = Home.route) {
@@ -53,7 +59,11 @@ fun UJournalNavHost(
             CalendarScreen()
         }
         composable(route = Media.route) {
-            MediaScreen()
+            MediaScreen(
+                onProfileClick = {
+                    navController.navigateSingleTopTo(Profile.route)
+                },
+            )
         }
         composable(route = Map.route) {
             MapScreen()
