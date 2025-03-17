@@ -133,11 +133,15 @@ private fun Day(
                 fontWeight = FontWeight.Medium,
             )
             if(shouldShowBottomIndicator){
+                var indicatorColor = if (day.date == selectedDate)
+                                        MaterialTheme.colorScheme.onPrimary
+                                        else MaterialTheme.colorScheme.primary
+
                 Box(
                     modifier = Modifier
                         .size(5.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(indicatorColor)
                 )
             }
         }
