@@ -5,10 +5,13 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
-
+// TODO: make icon optional
 interface UJournalDestination {
     val icon: ImageVector
     val name: String
@@ -63,5 +66,27 @@ object CreateJournalEntry : UJournalDestination {
     override val route = "journal-entry/create"
 }
 
+object JournalEntryDetail : UJournalDestination {
+
+    override val icon = Icons.Filled.Money
+    override val name = "Journal Entry Detail"
+    override val route = "journal-entry/detail"
+    const val journalEntryIDArg = "journal_entry_id"
+    val routeWithArgs = "${route}/{${journalEntryIDArg}}"
+
+    val arguments = listOf(
+        navArgument(journalEntryIDArg) { type = NavType.StringType }
+    )
+}
 val bottomTabRowScreens = listOf(Home, Calendar, Media, Map)
-val uJournalAppScreens = listOf(Home, Calendar, Media, Map, Profile, Login, Register, CreateJournalEntry)
+val uJournalAppScreens = listOf(
+    Home,
+    Calendar,
+    Media,
+    Map,
+    Profile,
+    Login,
+    Register,
+    CreateJournalEntry,
+    JournalEntryDetail
+)

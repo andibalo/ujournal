@@ -16,6 +16,10 @@ class JournalEntryViewModel : ViewModel() {
         _journalEntries.add(0,entry)
     }
 
+    fun getJournalEntry(journalEntryID: String?): JournalEntry {
+        return _journalEntries.first { it.id.toString() == journalEntryID }
+    }
+
     fun remove() {
         _journalEntries.remove(_journalEntries.get(0))
     }

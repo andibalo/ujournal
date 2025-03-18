@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal.ui.components.journalentry
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,8 +14,9 @@ import id.ac.umn.ujournal.ui.journal.JournalEntry
 
 @Composable
 fun JournalEntryList(
+    modifier: Modifier = Modifier,
     list: List<JournalEntry>,
-    modifier: Modifier = Modifier
+    onJournalEntryClick : (journalEntryID: String) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier,
@@ -31,6 +33,9 @@ fun JournalEntryList(
                 createdAt = entry.createdAt,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable {
+                        onJournalEntryClick(entry.id.toString())
+                    }
             )
             Spacer(
                 modifier = Modifier

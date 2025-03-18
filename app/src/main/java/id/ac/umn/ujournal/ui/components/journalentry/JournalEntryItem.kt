@@ -24,11 +24,11 @@ import java.time.LocalDateTime
 
 @Composable
 fun JournalEntryItem(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
     imageURI: String? = "",
     createdAt: LocalDateTime,
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier =  modifier,

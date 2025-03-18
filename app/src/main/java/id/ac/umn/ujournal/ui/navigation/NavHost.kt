@@ -11,6 +11,7 @@ import id.ac.umn.ujournal.ui.auth.RegisterScreen
 import id.ac.umn.ujournal.ui.calendar.CalendarScreen
 import id.ac.umn.ujournal.ui.home.HomeScreen
 import id.ac.umn.ujournal.ui.journal.CreateJournalEntryScreen
+import id.ac.umn.ujournal.ui.journal.JournalEntryDetailScreen
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
 import id.ac.umn.ujournal.ui.profile.ProfileScreen
@@ -53,6 +54,10 @@ fun UJournalNavHost(
                 onFABClick = {
                     navController.navigateSingleTopTo(CreateJournalEntry.route)
                 },
+                onJournalEntryClick = { journalEntryID ->
+                    println("Journal Entry ID: $journalEntryID")
+                    navController.navigateSingleTopTo("${JournalEntryDetail.route}/$journalEntryID")
+                }
             )
         }
         composable(route = Calendar.route) {
@@ -86,6 +91,23 @@ fun UJournalNavHost(
         }
         composable(route = CreateJournalEntry.route) {
             CreateJournalEntryScreen(
+                onBackButtonClick = {
+                    if (navController.previousBackStackEntry != null) {
+                        navController.navigateUp()
+                    }
+                },
+            )
+        }
+        composable(
+            route = JournalEntryDetail.routeWithArgs,
+            arguments =  JournalEntryDetail.arguments
+        ) { navBackStackEntry ->
+
+            val journalEntryID =
+                navBackStackEntry.arguments?.getString(JournalEntryDetail.journalEntryIDArg)
+
+            JournalEntryDetailScreen(
+                journalEntryID = journalEntryID,
                 onBackButtonClick = {
                     if (navController.previousBackStackEntry != null) {
                         navController.navigateUp()

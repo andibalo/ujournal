@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.BottomNavigationBar
 import id.ac.umn.ujournal.ui.navigation.CreateJournalEntry
 import id.ac.umn.ujournal.ui.navigation.Home
+import id.ac.umn.ujournal.ui.navigation.JournalEntryDetail
 import id.ac.umn.ujournal.ui.navigation.Login
 import id.ac.umn.ujournal.ui.navigation.Profile
 import id.ac.umn.ujournal.ui.navigation.Register
@@ -48,6 +49,7 @@ fun UJournalApp() {
 
         val currentDestination = currentBackStack?.destination
 
+        // TODO: handle route with arguments to hide bottom bar
         // Change the variable to this and use home as a backup screen if this returns null
         val currentScreen = uJournalAppScreens.find { it.route == currentDestination?.route } ?: Home
 
@@ -75,6 +77,7 @@ fun UJournalApp() {
 
 
 fun shouldShowBottomNavBar(route : String) : Boolean {
+
     when (route) {
         Profile.route -> {
             return false
@@ -86,6 +89,9 @@ fun shouldShowBottomNavBar(route : String) : Boolean {
             return false
         }
         CreateJournalEntry.route -> {
+            return false
+        }
+        JournalEntryDetail.routeWithArgs -> {
             return false
         }
         else -> {
@@ -95,6 +101,7 @@ fun shouldShowBottomNavBar(route : String) : Boolean {
 }
 
 fun shouldShowTopAppBar(route : String) : Boolean {
+
     when (route) {
         Profile.route -> {
             return false
@@ -106,6 +113,9 @@ fun shouldShowTopAppBar(route : String) : Boolean {
             return false
         }
         CreateJournalEntry.route -> {
+            return false
+        }
+        JournalEntryDetail.routeWithArgs -> {
             return false
         }
         else -> {

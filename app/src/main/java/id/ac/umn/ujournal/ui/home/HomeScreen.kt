@@ -29,6 +29,7 @@ fun HomeScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
     onFABClick : () -> Unit = {},
+    onJournalEntryClick : (journalEntryID: String) -> Unit = {},
 ) {
 
     // TODO: list not recomposing after adding new journal entry from create journal entry screen
@@ -70,7 +71,8 @@ fun HomeScreen(
         ) {
             JournalEntryList(
                 list = journalEntryViewModel.journalEntries,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                onJournalEntryClick = onJournalEntryClick
             )
         }
     }

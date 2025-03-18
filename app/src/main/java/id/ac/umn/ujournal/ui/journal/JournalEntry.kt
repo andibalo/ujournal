@@ -3,7 +3,7 @@ package id.ac.umn.ujournal.ui.journal
 import java.time.LocalDateTime
 import java.util.UUID
 
-class JournalEntry(
+data class JournalEntry(
     val id: UUID,
     var title: String,
     var description: String,
