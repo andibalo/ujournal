@@ -17,7 +17,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 
+@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
