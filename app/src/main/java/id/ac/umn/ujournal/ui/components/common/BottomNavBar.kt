@@ -15,7 +15,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import id.ac.umn.ujournal.ui.navigation.bottomTabRowScreens
-import id.ac.umn.ujournal.ui.navigation.navigateSingleTopTo
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController, bottomBarState: MutableState<Boolean>) {
@@ -35,7 +34,7 @@ fun BottomNavigationBar(navController: NavHostController, bottomBarState: Mutabl
                         selected = selectedItem == index,
                         onClick = {
                             selectedItem = index
-                            navController.navigateSingleTopTo(item.route)
+                            navController.navigate(item.route)
                         }
                     )
                 }
