@@ -3,7 +3,6 @@ package id.ac.umn.ujournal.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,10 +34,10 @@ fun UJournalNavHost(
         composable(route = Login.route) {
             LoginScreen(
                 onSignUpClick = {
-                    navController.navigateSingleTopTo(Register.route)
+                    navController.navigate(Register.route)
                 },
                 navigateToHomeScreen = {
-                    navController.navigateSingleTopTo(Home.route)
+                    navController.navigate(Home.route)
                 }
             )
         }
@@ -46,10 +45,10 @@ fun UJournalNavHost(
             RegisterScreen(
                 userViewModel = userViewModel,
                 onLoginClick = {
-                    navController.navigateSingleTopTo(Login.route)
+                    navController.navigate(Login.route)
                 },
                 navigateToHomeScreen = {
-                    navController.navigateSingleTopTo(Home.route)
+                    navController.navigate(Home.route)
                 }
             )
         }
@@ -58,31 +57,35 @@ fun UJournalNavHost(
                 userViewModel = userViewModel,
                 journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
-                    navController.navigateSingleTopTo(Profile.route)
+                    navController.navigate(Profile.route)
                 },
                 onFABClick = {
-                    navController.navigateSingleTopTo(CreateJournalEntry.route)
+                    navController.navigate(CreateJournalEntry.route)
                 },
                 onJournalEntryClick = { journalEntryID ->
-                    println("Journal Entry ID: $journalEntryID")
-                    navController.navigateSingleTopTo("${JournalEntryDetail.route}/$journalEntryID")
+                    navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
                 }
             )
         }
         composable(route = Calendar.route) {
             CalendarScreen(
+                userViewModel = userViewModel,
                 journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
-                    navController.navigateSingleTopTo(Profile.route)
+                    navController.navigate(Profile.route)
                 },
             )
         }
         composable(route = Media.route) {
             MediaScreen(
+                userViewModel = userViewModel,
                 journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
-                    navController.navigateSingleTopTo(Profile.route)
+                    navController.navigate(Profile.route)
                 },
+                onMediaItemClick = { journalEntryID ->
+                    navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
+                }
             )
         }
         composable(route = Map.route) {
@@ -96,7 +99,7 @@ fun UJournalNavHost(
                     }
                 },
                 onLogoutButtonClick = {
-                    navController.navigateSingleTopTo(Login.route)
+                    navController.navigate(Login.route)
                 }
             )
         }
@@ -130,20 +133,3 @@ fun UJournalNavHost(
         }
     }
 }
-
-fun NavHostController.navigateSingleTopTo(route: String) =
-    this.navigate(route) {
-        // Pop up to the start destination of the graph to
-        // avoid building up a large stack of destinations
-        // on the back stack as users select items
-        popUpTo(
-            this@navigateSingleTopTo.graph.findStartDestination().id
-        ) {
-            saveState = true
-        }
-        // Avoid multiple copies of the same destination when
-        // reselecting the same item
-        launchSingleTop = true
-        // Restore state when reselecting a previously selected item
-        restoreState = true
-    }

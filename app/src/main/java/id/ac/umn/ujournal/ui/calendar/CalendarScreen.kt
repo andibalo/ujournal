@@ -12,31 +12,52 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.calendar.Calendar
+import id.ac.umn.ujournal.ui.components.common.ErrorScreen
+import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
+import id.ac.umn.ujournal.viewmodel.UserState
+import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
+    userViewModel: UserViewModel = viewModel(),
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
 ) {
 
     val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
+    val userState by userViewModel.userState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserData()
+    }
+
+    if (userState == UserState.Loading) {
+        LoadingScreen()
+        return
+    }
+
+    if (userState is UserState.Error) {
+        ErrorScreen()
+        return
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             UJournalTopAppBar(
                 title = {
-                    // TODO:  make dynamic
+                    val user = (userState as UserState.Success).user
                     Text(
-                        text = "Hello, Andi",
+                        text = "Hello, " + user.firstName
                     )
                 },
                 actions = {

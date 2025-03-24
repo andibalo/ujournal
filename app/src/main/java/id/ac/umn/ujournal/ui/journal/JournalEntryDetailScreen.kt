@@ -29,7 +29,6 @@ import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalEntryDetailScreen(

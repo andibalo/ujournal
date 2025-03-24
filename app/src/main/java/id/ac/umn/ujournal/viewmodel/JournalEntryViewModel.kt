@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 import java.util.UUID
 
@@ -37,6 +39,18 @@ class JournalEntryViewModel : ViewModel() {
             currentEntries.filter { it.id.toString() != journalEntryID }
         }
     }
+
+    fun getJournalEntriesGroupedByDate(): Map<String, List<JournalEntry>> {
+        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+
+        return _journalEntries.value
+            .sortedByDescending { it.createdAt }
+            .groupBy { entry ->
+                val date = entry.createdAt.toLocalDate()
+                dateFormatter.format(date)
+            }
+    }
+
 }
 
 fun createTestJournalEntry(
