@@ -94,9 +94,14 @@ fun ProfileScreen(
                             .weight(1f)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically)
+                        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
                     ) {
                         Box {
+                            // TODO : icon for changing profile picture (?)
+//                            Icon(
+//                                imageVector = Icons.Filled.Edit,
+//                                contentDescription = "Edit",
+//                            )
                             Image(
                                 painter = painterResource(id = R.drawable.default_profile_picture),
                                 contentDescription = " Profile Picture",
@@ -104,19 +109,9 @@ fun ProfileScreen(
                                 .size(150.dp)
                                 .clip(CircleShape)
                             )
-//                            AsyncImage(
-//                                model = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
-//                                contentDescription = "Profile Picture",
-//                                modifier = Modifier
-//                                    .size(180.dp)
-//                                    .clip(CircleShape)
-//                            )
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "Edit",
-                            )
                         }
                         Text(
+                            /* TODO : make user name dynamic */
                             text = "John Doe",
                             textAlign = TextAlign.Center,
                             fontSize = 24.sp,
@@ -135,7 +130,6 @@ fun ProfileScreen(
                     }
                 }
             }
-//            Spacer(Modifier.size(10.dp))
           Button(onClick = onLogoutButtonClick) {
               Text(text = "Logout")
           }
