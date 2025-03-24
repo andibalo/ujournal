@@ -86,38 +86,53 @@ fun ProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .padding(20.dp)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box {
-//                        Image(
-//                    painter = painterResource(id = R.drawable.)
-//                        contentDescription = " Profile Picture",
-//                        modifier = Modifier
-//                            .size(100.dp)
-//                            .clip(CircleShape)
-//                    )
-                        AsyncImage(
-                            model = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
-                            contentDescription = "Profile Picture",
-                            modifier = Modifier
-                                .size(100.dp)
+                    Column (
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically)
+                    ) {
+                        Box {
+                            Image(
+                                painter = painterResource(id = R.drawable.default_profile_picture),
+                                contentDescription = " Profile Picture",
+                                modifier = Modifier
+                                .size(150.dp)
                                 .clip(CircleShape)
-                        )
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit",
+                            )
+//                            AsyncImage(
+//                                model = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+//                                contentDescription = "Profile Picture",
+//                                modifier = Modifier
+//                                    .size(180.dp)
+//                                    .clip(CircleShape)
+//                            )
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Edit",
+                            )
+                        }
+                        Text(
+                            text = "John Doe",
+                            textAlign = TextAlign.Center,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                    Text(
-                        text = "John Doe",
-                        textAlign = TextAlign.Center,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
-                    Text(
-                        text = "Kelompok 3",
-                        textAlign = TextAlign.Center,
-                    )
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
+                        Text(
+                            text = "Kelompok 3",
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
 //            Spacer(Modifier.size(10.dp))
