@@ -42,7 +42,7 @@ import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.daysOfWeek
-import id.ac.umn.ujournal.ui.journal.JournalEntry
+import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.util.displayText
 
 import java.time.LocalDate

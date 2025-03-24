@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import id.ac.umn.ujournal.ui.journal.JournalEntry
+import id.ac.umn.ujournal.model.JournalEntry
 
 @Composable
 fun JournalEntryList(

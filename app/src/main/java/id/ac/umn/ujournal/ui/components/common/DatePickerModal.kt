@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.ui.components
+package id.ac.umn.ujournal.ui.components.common
 
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog

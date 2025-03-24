@@ -2,6 +2,7 @@ package id.ac.umn.ujournal.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -12,15 +13,20 @@ import id.ac.umn.ujournal.ui.calendar.CalendarScreen
 import id.ac.umn.ujournal.ui.home.HomeScreen
 import id.ac.umn.ujournal.ui.journal.CreateJournalEntryScreen
 import id.ac.umn.ujournal.ui.journal.JournalEntryDetailScreen
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
 import id.ac.umn.ujournal.ui.profile.ProfileScreen
+import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 @Composable
 fun UJournalNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val journalEntryViewModel: JournalEntryViewModel = viewModel()
+    val userViewModel: UserViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Home.route,
@@ -38,6 +44,7 @@ fun UJournalNavHost(
         }
         composable(route = Register.route) {
             RegisterScreen(
+                userViewModel = userViewModel,
                 onLoginClick = {
                     navController.navigateSingleTopTo(Login.route)
                 },
@@ -48,6 +55,8 @@ fun UJournalNavHost(
         }
         composable(route = Home.route) {
             HomeScreen(
+                userViewModel = userViewModel,
+                journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
                     navController.navigateSingleTopTo(Profile.route)
                 },
@@ -62,6 +71,7 @@ fun UJournalNavHost(
         }
         composable(route = Calendar.route) {
             CalendarScreen(
+                journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
                     navController.navigateSingleTopTo(Profile.route)
                 },
@@ -69,6 +79,7 @@ fun UJournalNavHost(
         }
         composable(route = Media.route) {
             MediaScreen(
+                journalEntryViewModel = journalEntryViewModel,
                 onProfileClick = {
                     navController.navigateSingleTopTo(Profile.route)
                 },
@@ -91,6 +102,7 @@ fun UJournalNavHost(
         }
         composable(route = CreateJournalEntry.route) {
             CreateJournalEntryScreen(
+                journalEntryViewModel = journalEntryViewModel,
                 onBackButtonClick = {
                     if (navController.previousBackStackEntry != null) {
                         navController.navigateUp()
@@ -107,6 +119,7 @@ fun UJournalNavHost(
                 navBackStackEntry.arguments?.getString(JournalEntryDetail.journalEntryIDArg)
 
             JournalEntryDetailScreen(
+                journalEntryViewModel = journalEntryViewModel,
                 journalEntryID = journalEntryID,
                 onBackButtonClick = {
                     if (navController.previousBackStackEntry != null) {

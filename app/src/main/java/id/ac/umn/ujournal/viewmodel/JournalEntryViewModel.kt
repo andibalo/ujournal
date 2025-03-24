@@ -1,27 +1,41 @@
-package id.ac.umn.ujournal.ui.journal
+package id.ac.umn.ujournal.viewmodel
 
-import androidx.compose.runtime.toMutableStateList
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import id.ac.umn.ujournal.model.JournalEntry
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import java.time.LocalDateTime
 
 import java.util.UUID
 
 class JournalEntryViewModel : ViewModel() {
-    private val _journalEntries = getJournalEntryTestData().toMutableStateList()
-    val journalEntries: List<JournalEntry>
-        get() = _journalEntries
+    private val _journalEntries = MutableStateFlow(getJournalEntryTestData())
 
+    val journalEntries: StateFlow<List<JournalEntry>> get() = _journalEntries
 
     fun addJournalEntry(entry: JournalEntry) {
-        _journalEntries.add(0,entry)
+        Log.d("JournalEntryViewModel", "Adding entry: $entry")
+
+        val currentList = _journalEntries.value
+        Log.d("JournalEntryViewModel", "Current List: $currentList")
+
+        _journalEntries.update { currentEntries ->
+            listOf(entry) + currentEntries
+        }
     }
 
-    fun getJournalEntry(journalEntryID: String?): JournalEntry {
-        return _journalEntries.first { it.id.toString() == journalEntryID }
+    fun getJournalEntry(journalEntryID: String): JournalEntry? {
+        return _journalEntries.value.firstOrNull { it.id.toString() == journalEntryID }
     }
 
-    fun remove() {
-        _journalEntries.remove(_journalEntries.get(0))
+    fun remove(journalEntryID: String) {
+        Log.d("JournalEntryViewModel", "Removing entry with ID: $journalEntryID")
+
+        _journalEntries.update { currentEntries ->
+            currentEntries.filter { it.id.toString() != journalEntryID }
+        }
     }
 }
 

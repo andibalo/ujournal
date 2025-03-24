@@ -39,10 +39,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import id.ac.umn.ujournal.ui.components.DatePickerModal
-import id.ac.umn.ujournal.ui.components.UJournalTopAppBar
+import id.ac.umn.ujournal.model.JournalEntry
+import id.ac.umn.ujournal.ui.components.common.DatePickerModal
+import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId

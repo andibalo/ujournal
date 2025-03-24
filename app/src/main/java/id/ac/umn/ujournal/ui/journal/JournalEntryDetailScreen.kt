@@ -25,25 +25,30 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import id.ac.umn.ujournal.ui.components.UJournalTopAppBar
+import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalEntryDetailScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
-    journalEntryID: String? = "",
+    journalEntryID: String?,
     onBackButtonClick : () -> Unit = {},
 ) {
 
-    if (journalEntryID == "") {
+    if (journalEntryID == null) {
         onBackButtonClick()
         return
     }
 
-//    val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
-      val journalEntry = remember(journalEntryID) { journalEntryViewModel.journalEntries.get(0) }
+    val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
+
+    if (journalEntry == null) {
+        onBackButtonClick()
+        return
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

@@ -18,13 +18,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import id.ac.umn.ujournal.ui.components.UJournalTopAppBar
-import id.ac.umn.ujournal.ui.journal.JournalEntryViewModel
+import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +34,8 @@ fun MediaScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
 ) {
+
+    val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -59,7 +63,6 @@ fun MediaScreen(
                     .padding(top = innerPadding.calculateTopPadding())
                     .fillMaxSize()
             ) {
-
                 Text(
                     text = "17 Maret 2025",
                     style = MaterialTheme.typography.titleMedium,
@@ -68,9 +71,9 @@ fun MediaScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3)
                 ) {
-                    items(journalEntryViewModel.journalEntries.size) { index ->
+                    items(journalEntries.size) { index ->
                         AsyncImage(
-                            model = journalEntryViewModel.journalEntries.get(index).imageURI,
+                            model = journalEntries[index].imageURI,
                             modifier = Modifier.height(100.dp).fillMaxWidth(),
                             contentDescription = "Journal Entry Photo",
                             contentScale = ContentScale.Crop

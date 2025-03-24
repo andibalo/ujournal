@@ -12,11 +12,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import id.ac.umn.ujournal.ui.components.UJournalTopAppBar
+import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.calendar.Calendar
-import id.ac.umn.ujournal.ui.journal.JournalEntryViewModel
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +26,9 @@ fun CalendarScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
 ) {
+
+    val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -47,7 +52,7 @@ fun CalendarScreen(
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
            Calendar(
-               journalEntries = journalEntryViewModel.journalEntries
+               journalEntries = journalEntries
            )
         }
     }

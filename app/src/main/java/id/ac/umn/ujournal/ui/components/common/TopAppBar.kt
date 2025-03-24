@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.ui.components
+package id.ac.umn.ujournal.ui.components.common
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets

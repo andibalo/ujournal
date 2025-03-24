@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.ui.components
+package id.ac.umn.ujournal.ui.components.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically

@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.ui.journal
+package id.ac.umn.ujournal.model
 
 import java.time.LocalDateTime
 import java.util.UUID

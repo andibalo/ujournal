@@ -23,9 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import id.ac.umn.ujournal.model.User
+import id.ac.umn.ujournal.viewmodel.UserViewModel
+import java.util.UUID
 
 @Composable
 fun RegisterScreen(
+    userViewModel: UserViewModel = viewModel(),
     onLoginClick: () -> Unit = {},
     navigateToHomeScreen: () -> Unit = {}
 ) {
@@ -34,6 +39,19 @@ fun RegisterScreen(
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var confirmPasswordInput by remember { mutableStateOf("") }
+
+    fun onRegisterClick() {
+        // TODO: add validation
+
+        userViewModel.updateUserData(User(
+            id = UUID.randomUUID(),
+            firstName = firstNameInput,
+            lastName = lastNameInput,
+            email = emailInput,
+            profileImageURL = null,
+            password = confirmPasswordInput
+        ))
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -88,8 +106,7 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    /*TODO : Implement register functionality*/
-
+                    onRegisterClick()
                     navigateToHomeScreen()
                 }
             ) {
