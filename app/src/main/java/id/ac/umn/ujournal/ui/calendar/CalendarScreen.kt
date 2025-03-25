@@ -31,6 +31,7 @@ fun CalendarScreen(
     userViewModel: UserViewModel = viewModel(),
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onProfileClick : () -> Unit = {},
+    navigateToCalendarDateDetailScreen : (String) -> Unit = {}
 ) {
 
     val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
@@ -73,7 +74,10 @@ fun CalendarScreen(
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
            Calendar(
-               journalEntries = journalEntries
+               journalEntries = journalEntries,
+               onDayClick = { calendarDay ->
+                   navigateToCalendarDateDetailScreen(calendarDay.date.toString())
+               }
            )
         }
     }

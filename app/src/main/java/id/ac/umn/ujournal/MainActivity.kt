@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.common.BottomNavigationBar
+import id.ac.umn.ujournal.ui.navigation.CalendarDateDetail
 import id.ac.umn.ujournal.ui.navigation.CreateJournalEntry
 import id.ac.umn.ujournal.ui.navigation.Home
 import id.ac.umn.ujournal.ui.navigation.JournalEntryDetail
@@ -95,6 +96,9 @@ fun shouldShowBottomNavBar(route : String) : Boolean {
         JournalEntryDetail.route -> {
             return false
         }
+        CalendarDateDetail.route -> {
+            return false
+        }
         else -> {
             return true
         }
@@ -117,6 +121,9 @@ fun shouldShowTopAppBar(route : String) : Boolean {
             return false
         }
         JournalEntryDetail.route -> {
+            return false
+        }
+        CalendarDateDetail.route -> {
             return false
         }
         else -> {

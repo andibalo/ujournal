@@ -86,10 +86,28 @@ object JournalEntryDetail : UJournalDestination {
         navArgument(journalEntryIDArg) { type = NavType.StringType }
     )
 }
+
+object CalendarDateDetail : UJournalDestination {
+
+    override val icon = null
+    override val name = "Calendar Date Detail"
+    override val route = "calendar/date"
+
+    const val calendarDateArg = "calendar_date"
+
+    override val routeWithArgs = "${route}/{${calendarDateArg}}"
+
+    val arguments = listOf(
+        navArgument(calendarDateArg) { type = NavType.StringType }
+    )
+}
+
+
 val bottomTabRowScreens = listOf(Home, Calendar, Media, Map)
 val uJournalAppScreens = listOf(
     Home,
     Calendar,
+    CalendarDateDetail,
     Media,
     Map,
     Profile,

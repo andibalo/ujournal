@@ -53,7 +53,7 @@ import java.time.YearMonth
 fun Calendar(
     journalEntries: List<JournalEntry> = emptyList(),
     close: () -> Unit = {},
-    dateSelected: (startDate: LocalDate, endDate: LocalDate) -> Unit = { _, _ -> },
+    onDayClick: (calendarDay : CalendarDay) -> Unit = {},
     adjacentYears: Long = 50
 ) {
     val currentMonth = remember { YearMonth.now() }
@@ -82,13 +82,16 @@ fun Calendar(
                 state = state,
                 contentPadding = PaddingValues(bottom = 100.dp),
                 dayContent = { value ->
+                    val journalEntryExists = journalEntries.any { it.createdAt.toLocalDate() == value.date }
                     Day(
                         value,
                         today = today,
                         selectedDate = selectedDate,
-                        shouldShowBottomIndicator = journalEntries.any { it.createdAt.toLocalDate() == value.date }
+                        shouldShowBottomIndicator = journalEntryExists
                     ) { day ->
-                            selectedDate = day.date
+                        if(journalEntryExists) {
+                            onDayClick(day)
+                        }
                     }
                 },
                 monthHeader = { month -> MonthHeader(month) },
