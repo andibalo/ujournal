@@ -8,7 +8,8 @@ data class JournalEntry(
     var title: String,
     var description: String,
     var imageURI: String?,
-    var geotag: List<String>,
+    var latitude: Double?,
+    var longitude: Double?,
     var createdAt: LocalDateTime,
     var updatedAt: LocalDateTime?,
 )

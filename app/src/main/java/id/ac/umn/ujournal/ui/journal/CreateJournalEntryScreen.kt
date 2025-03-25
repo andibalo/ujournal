@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.material.icons.filled.PersonPinCircle
 import androidx.compose.material3.Button
@@ -34,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
+import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
@@ -60,6 +64,9 @@ fun CreateJournalEntryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
     var entryBody by rememberSaveable { mutableStateOf("") }
+    var showLocationPicker by remember { mutableStateOf(false) }
+    var latitude: Double? by rememberSaveable { mutableStateOf(null) }
+    var longitude: Double? by rememberSaveable { mutableStateOf(null) }
 
     val currentDate = LocalDateTime.now()
     var entryDate: LocalDateTime by rememberSaveable {
@@ -84,12 +91,27 @@ fun CreateJournalEntryScreen(
             title = entryTitle,
             description = entryBody,
             imageURI = photoUri.toString(),
-            geotag = listOf(),
+            latitude = latitude,
+            longitude = longitude,
             createdAt = entryDate,
             updatedAt = null
         )
 
         journalEntryViewModel.addJournalEntry(journalEntry)
+    }
+
+    if(showLocationPicker) {
+        LocationPicker(
+            onDismiss = {
+                showLocationPicker = false
+            },
+            onLocationSelect = { coordinates ->
+                latitude = coordinates.latitude
+                longitude = coordinates.longitude
+                showLocationPicker = false
+            }
+        )
+        return
     }
 
     Scaffold(
@@ -135,7 +157,7 @@ fun CreateJournalEntryScreen(
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            // TODO: add geotag functionality
+                            showLocationPicker = true
                         }
                     ) {
                         Text(text = "Geotag")
@@ -179,6 +201,20 @@ fun CreateJournalEntryScreen(
                     },
                     dataInSeconds = entryDate.toLocalMilliseconds()
                 )
+            }
+
+            // TODO: display address instead of latitude, longitude (reverse geocoding)
+            if(latitude != null && longitude != null){
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
+                    Text(
+                        text = "%.4f".format(latitude) + ", %.4f".format(longitude)
+                    )
+                }
             }
 
             TextButton(

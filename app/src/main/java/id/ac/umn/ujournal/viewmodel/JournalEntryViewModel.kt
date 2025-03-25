@@ -58,7 +58,8 @@ fun createTestJournalEntry(
     title: String = "Test Journal Entry",
     description: String = "This is a test journal entry.",
     picture: String = "https://picsum.photos/300",
-    geotag: List<String> = listOf("40.7128° N", "74.0060° W"),
+    latitude: Double = 40.7128,
+    longitude: Double = -74.0060,
     createdAt: LocalDateTime = LocalDateTime.now(),
     updatedAt: LocalDateTime = LocalDateTime.now()
 ): JournalEntry {
@@ -67,7 +68,8 @@ fun createTestJournalEntry(
         title = title,
         description = description,
         imageURI = picture,
-        geotag = geotag,
+        latitude = latitude,
+        longitude = longitude,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -78,7 +80,8 @@ fun getJournalEntryTestData(): List<JournalEntry> {
         createTestJournalEntry(
             title = "Test Journal Entry $index",
             description = "This is test journal entry number $index.",
-            geotag = listOf("${40.7128 + index}° N", "${74.0060 + index}° W"),
+            latitude = 40.7128,
+            longitude = 74.0060,
             createdAt = LocalDateTime.now().minusDays(index.toLong())
         )
     }

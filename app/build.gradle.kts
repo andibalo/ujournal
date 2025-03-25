@@ -65,6 +65,8 @@ dependencies {
     // ViewModel utilities for Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
 
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

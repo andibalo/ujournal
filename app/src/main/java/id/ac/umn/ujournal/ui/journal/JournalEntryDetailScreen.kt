@@ -1,7 +1,9 @@
 package id.ac.umn.ujournal.ui.journal
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -103,6 +107,19 @@ fun JournalEntryDetailScreen(
             Column(
                 modifier = Modifier.padding(10.dp)
             ) {
+                // TODO: display address instead of latitude, longitude (reverse geocoding)
+                if(journalEntry.latitude != null && journalEntry.longitude != null){
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
+                        Text(
+                            text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude)
+                        )
+                    }
+                }
+                Spacer(Modifier.padding(vertical = 4.dp))
                 Text(
                     text = journalEntry.createdAt.format(ddMMMMyyyyDateTimeFormatter),
                     style = MaterialTheme.typography.titleMedium
