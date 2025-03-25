@@ -58,8 +58,8 @@ fun createTestJournalEntry(
     title: String = "Test Journal Entry",
     description: String = "This is a test journal entry.",
     picture: String = "https://picsum.photos/300",
-    latitude: Double = 40.7128,
-    longitude: Double = -74.0060,
+    latitude: Double = 0.78,
+    longitude: Double = 113.92,
     createdAt: LocalDateTime = LocalDateTime.now(),
     updatedAt: LocalDateTime = LocalDateTime.now()
 ): JournalEntry {
@@ -80,8 +80,8 @@ fun getJournalEntryTestData(): List<JournalEntry> {
         createTestJournalEntry(
             title = "Test Journal Entry $index",
             description = "This is test journal entry number $index.",
-            latitude = 40.7128,
-            longitude = 74.0060,
+            latitude = -6.31,
+            longitude =  106.66 + (index * 0.01),
             createdAt = LocalDateTime.now().minusDays(index.toLong())
         )
     }

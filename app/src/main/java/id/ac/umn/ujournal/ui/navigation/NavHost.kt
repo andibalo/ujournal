@@ -89,7 +89,12 @@ fun UJournalNavHost(
             )
         }
         composable(route = Map.route) {
-            MapScreen()
+            MapScreen(
+                journalEntryViewModel = journalEntryViewModel,
+                onMarkerClick = { journalEntry ->
+                    navController.navigate("${JournalEntryDetail.route}/${journalEntry.id}")
+                }
+            )
         }
         composable(route = Profile.route) {
             ProfileScreen(

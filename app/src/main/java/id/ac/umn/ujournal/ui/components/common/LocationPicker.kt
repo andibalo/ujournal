@@ -50,12 +50,13 @@ import java.util.Locale
 @Composable
 fun LocationPicker(
     onLocationSelect: (coordinates: LatLng) -> Unit = {},
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    initialZoomLevel: Float = 15f,
 ) {
     val context = LocalContext.current
     val defaultLatLong = INDONESIA_LAT_LONG
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(defaultLatLong, 10f)
+        position = CameraPosition.fromLatLngZoom(defaultLatLong, initialZoomLevel)
     }
     val fusedLocationClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
