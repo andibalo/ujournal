@@ -49,9 +49,10 @@ fun UJournalApp() {
 
         val currentDestination = currentBackStack?.destination
 
-        // TODO: handle route with arguments to hide bottom bar
         // Change the variable to this and use home as a backup screen if this returns null
-        val currentScreen = uJournalAppScreens.find { it.route == currentDestination?.route } ?: Home
+        val currentScreen = uJournalAppScreens.find {
+            it.route == currentDestination?.route || it.routeWithArgs == currentDestination?.route
+        } ?: Home
 
         bottomBarState.value = shouldShowBottomNavBar(currentScreen.route)
         topBarState.value = shouldShowTopAppBar(currentScreen.route)
@@ -91,7 +92,7 @@ fun shouldShowBottomNavBar(route : String) : Boolean {
         CreateJournalEntry.route -> {
             return false
         }
-        JournalEntryDetail.routeWithArgs -> {
+        JournalEntryDetail.route -> {
             return false
         }
         else -> {
@@ -115,7 +116,7 @@ fun shouldShowTopAppBar(route : String) : Boolean {
         CreateJournalEntry.route -> {
             return false
         }
-        JournalEntryDetail.routeWithArgs -> {
+        JournalEntryDetail.route -> {
             return false
         }
         else -> {

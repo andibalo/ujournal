@@ -29,7 +29,7 @@ fun BottomNavigationBar(navController: NavHostController, bottomBarState: Mutabl
                 bottomTabRowScreens.forEachIndexed { index, item ->
                     NavigationBarItem(
                         alwaysShowLabel = true,
-                        icon = { Icon(item.icon, contentDescription = item.route) },
+                        icon = { item.icon?.let { Icon(it, contentDescription = item.route) } },
                         label = { Text(item.name) },
                         selected = selectedItem == index,
                         onClick = {
