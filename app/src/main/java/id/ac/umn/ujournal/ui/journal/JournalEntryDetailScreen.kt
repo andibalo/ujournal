@@ -26,11 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
+import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,17 +109,34 @@ fun JournalEntryDetailScreen(
             Column(
                 modifier = Modifier.padding(10.dp)
             ) {
-                // TODO: display address instead of latitude, longitude (reverse geocoding)
                 if(journalEntry.latitude != null && journalEntry.longitude != null){
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
-                        Text(
-                            text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude)
-                        )
+                        Column {
+                            getAddressFromLatLong(
+                                useDeprecated = true,
+                                lat = journalEntry.latitude!!,
+                                lon = journalEntry.longitude!!,
+                                context =  LocalContext.current
+                            )?.let {
+                                Text(
+                                    text = it.getAddressLine(0),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                                Spacer(Modifier.padding(2.dp))
+                            }
+                            Text(
+                                text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
                     }
+
+
                 }
                 Spacer(Modifier.padding(vertical = 4.dp))
                 Text(

@@ -2,11 +2,7 @@ package id.ac.umn.ujournal.ui.components.common
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
-import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,8 +38,6 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import id.ac.umn.ujournal.ui.constant.INDONESIA_LAT_LONG
-import java.io.IOException
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnrememberedMutableState")
@@ -161,31 +155,4 @@ private fun fetchCurrentLatLong(
         // TODO: improve error handling
         Log.d("LocationPicker", "Error fetching Current Lat Long: ${it.message}")
     }
-}
-
-private fun getAddressFromLatLong(
-    lat: Double,
-    lon: Double,
-    context: Context,
-): Address? {
-    var address: Address? = null
-    val geocoder = Geocoder(context, Locale.getDefault())
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        geocoder.getFromLocation(lat, lon, 1) { list ->
-            if (list.size != 0) {
-                address = list[0]
-            }
-        }
-    } else {
-        try {
-            val list = geocoder.getFromLocation(lat, lon, 1)
-            if (list != null && list.size != 0) {
-                address = list[0]
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-    return address
 }

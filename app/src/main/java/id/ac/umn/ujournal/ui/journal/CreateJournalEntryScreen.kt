@@ -25,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
@@ -47,6 +49,7 @@ import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
+import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import java.time.Instant
@@ -203,7 +206,6 @@ fun CreateJournalEntryScreen(
                 )
             }
 
-            // TODO: display address instead of latitude, longitude (reverse geocoding)
             if(latitude != null && longitude != null){
                 Row(
                     modifier = Modifier.padding(10.dp),
@@ -211,9 +213,24 @@ fun CreateJournalEntryScreen(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
-                    Text(
-                        text = "%.4f".format(latitude) + ", %.4f".format(longitude)
-                    )
+                    Column {
+                        getAddressFromLatLong(
+                            useDeprecated = true,
+                            lat = latitude!!,
+                            lon = longitude!!,
+                            context =  LocalContext.current
+                        )?.let {
+                            Text(
+                                text = it.getAddressLine(0),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Spacer(Modifier.padding(2.dp))
+                        }
+                        Text(
+                            text = "%.4f".format(latitude) + ", %.4f".format(longitude),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
 
