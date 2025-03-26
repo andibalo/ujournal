@@ -1,5 +1,7 @@
 package id.ac.umn.ujournal
 
+import android.content.res.Configuration.UI_MODE_NIGHT_NO
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.common.BottomNavigationBar
@@ -32,48 +35,48 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            UJournalApp()
+            UJournalTheme {
+                UJournalApp()
+            }
         }
     }
 }
 
 @Composable
 fun UJournalApp() {
-    UJournalTheme {
-        val navController = rememberNavController()
+    val navController = rememberNavController()
 
-        val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
+    val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
 
-        val topBarState = rememberSaveable { (mutableStateOf(true)) }
+    val topBarState = rememberSaveable { (mutableStateOf(true)) }
 
-        val currentBackStack by navController.currentBackStackEntryAsState()
+    val currentBackStack by navController.currentBackStackEntryAsState()
 
-        val currentDestination = currentBackStack?.destination
+    val currentDestination = currentBackStack?.destination
 
-        // Change the variable to this and use home as a backup screen if this returns null
-        val currentScreen = uJournalAppScreens.find {
-            it.route == currentDestination?.route || it.routeWithArgs == currentDestination?.route
-        } ?: Home
+    // Change the variable to this and use home as a backup screen if this returns null
+    val currentScreen = uJournalAppScreens.find {
+        it.route == currentDestination?.route || it.routeWithArgs == currentDestination?.route
+    } ?: Home
 
-        bottomBarState.value = shouldShowBottomNavBar(currentScreen.route)
-        topBarState.value = shouldShowTopAppBar(currentScreen.route)
+    bottomBarState.value = shouldShowBottomNavBar(currentScreen.route)
+    topBarState.value = shouldShowTopAppBar(currentScreen.route)
 
-        Scaffold(
-            modifier = Modifier
-                .statusBarsPadding(),
-            bottomBar = {
-                BottomNavigationBar(
-                   navController,
-                   bottomBarState
-                )
-            },
-
-        ) { innerPadding: PaddingValues ->
-            UJournalNavHost(
-                navController = navController,
-                modifier = Modifier.padding(innerPadding)
+    Scaffold(
+        modifier = Modifier
+            .statusBarsPadding(),
+        bottomBar = {
+            BottomNavigationBar(
+               navController,
+               bottomBarState
             )
-        }
+        },
+
+    ) { innerPadding: PaddingValues ->
+        UJournalNavHost(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }
 
@@ -129,5 +132,27 @@ fun shouldShowTopAppBar(route : String) : Boolean {
         else -> {
             return true
         }
+    }
+}
+
+@Preview(
+    uiMode = UI_MODE_NIGHT_YES,
+    name = "DefaultPreviewDark"
+)
+@Composable
+fun UJournalAppPreviewDark() {
+    UJournalTheme {
+        UJournalApp()
+    }
+}
+
+@Preview(
+    uiMode = UI_MODE_NIGHT_NO,
+    name = "DefaultPreviewLight"
+)
+@Composable
+fun UJournalAppPreviewLight() {
+    UJournalTheme {
+        UJournalApp()
     }
 }
