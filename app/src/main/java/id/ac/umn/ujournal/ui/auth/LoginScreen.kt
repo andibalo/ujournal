@@ -3,6 +3,7 @@ package id.ac.umn.ujournal.ui.auth
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,16 +30,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 @Composable
 fun LoginScreen(
     userViewModel: UserViewModel = viewModel(),
     onSignUpClick: () -> Unit = {},
-    navigateToHomeScreen: () -> Unit = {}
+    navigateToHomeScreen: () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
+    val snackbar = SnackbarController.current
 
     fun onLoginClick() {
         // TODO: add validation
@@ -48,60 +58,73 @@ fun LoginScreen(
             Log.d("LoginScreen.onLoginClick", e.message ?: "Unknown Error")
             Log.d("LoginScreen.onLoginClick", e.stackTraceToString())
 
-            // TODO: show snackbar if user login failed
+            snackbar.showMessage(
+                message = e.message ?: "Something went wrong",
+                severity = Severity.ERROR
+            )
         }
     }
 
-    Surface(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 30.dp)
-        ) {
-            Text(
-                text = "U-Journal",
-                style = MaterialTheme.typography.headlineLarge
-            )
-            Text(
-                text = "By GoonPlatoon",
-                style = MaterialTheme.typography.labelLarge
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = emailInput,
-                onValueChange = { emailInput = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedPasswordTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = passwordInput,
-            ) {
-                passwordInput = it
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                shape = RoundedCornerShape(5.dp),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onLoginClick()
-                }
-            ) {
-                Text(text = "Login")
-            }
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(text = "Don't have an account?")
-                TextButton(onClick = onSignUpClick) {
-                    Text(text = "Sign Up")
-                }
-            }
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
 
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        }
+    ) { innerPadding: PaddingValues ->
+        Surface(
+            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 30.dp)
+            ) {
+                Text(
+                    text = "U-Journal",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                Text(
+                    text = "By GoonPlatoon",
+                    style = MaterialTheme.typography.labelLarge
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = emailInput,
+                    onValueChange = { emailInput = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedPasswordTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = passwordInput,
+                ) {
+                    passwordInput = it
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onLoginClick()
+                    }
+                ) {
+                    Text(text = "Login")
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(text = "Don't have an account?")
+                    TextButton(onClick = onSignUpClick) {
+                        Text(text = "Sign Up")
+                    }
+                }
+            }
         }
     }
 }

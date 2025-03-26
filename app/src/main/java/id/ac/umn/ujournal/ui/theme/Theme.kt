@@ -8,7 +8,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
@@ -347,6 +349,14 @@ data class ColorFamily(
 val unspecified_scheme = ColorFamily(
     Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified
 )
+val LocalExtendedColorScheme = compositionLocalOf { ExtendedColorScheme(
+    success = ColorFamily(Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified),
+    warning = ColorFamily(Color.Unspecified, Color.Unspecified, Color.Unspecified, Color.Unspecified)
+) }
+
+val MaterialTheme.extendedColor: ExtendedColorScheme
+    @Composable
+    get() = LocalExtendedColorScheme.current
 
 @Composable
 fun UJournalTheme(
@@ -365,9 +375,14 @@ fun UJournalTheme(
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
+    val extendedColorScheme = if (darkTheme) extendedDark else extendedLight
+
+    // Provide the custom extended color scheme to the composition
+    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            content = content
+        )
+    }
 }
