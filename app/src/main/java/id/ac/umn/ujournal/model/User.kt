@@ -8,5 +8,5 @@ data class User(
     val lastName: String,
     val email: String,
     val profileImageURL: String?,
-    val password: String = "admin" // TODO: Remove after integration to backend
+    val password: String  // TODO: Remove after integration to backend
 )

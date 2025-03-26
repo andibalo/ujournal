@@ -10,17 +10,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-private fun generateInitialUser(): User {
-    return User(
-        id = UUID.randomUUID(),
-        firstName = "John",
-        lastName = "Doe",
-        email = "john.doe@example.com",
-        password = "password123",
-        profileImageURL = "TEST",
-    )
-}
-
 sealed class UserState {
     object Loading : UserState()
     data class Success(val user: User) : UserState()
@@ -29,8 +18,13 @@ sealed class UserState {
 
 class UserViewModel : ViewModel() {
 
+    // TODO: remove _users after backend integration
+    private val _users  =MutableStateFlow(getInitialUserListData())
+
+    val users: StateFlow<List<User>> get() = _users
+
     // TODO: remove user dummy data
-    private val _userDummyData = MutableStateFlow(generateInitialUser())
+    private val _userDummyData = MutableStateFlow<User?>(generateInitialUser())
 
     private val _userState = MutableStateFlow<UserState>(UserState.Loading)
     val userState: StateFlow<UserState> get() = _userState
@@ -39,6 +33,11 @@ class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val user = fetchUserFromRemote()
+
+                if(user == null) {
+                    throw Exception("User not found")
+                }
+
                 _userState.value = UserState.Success(user)
             } catch (e: Exception) {
                 _userState.value = UserState.Error("Failed to load user")
@@ -62,8 +61,73 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    private suspend fun fetchUserFromRemote(): User {
+    private suspend fun fetchUserFromRemote(): User? {
         kotlinx.coroutines.delay(1000)
         return _userDummyData.value
+    }
+
+    // TODO: remove after backend integration
+    fun register(user: User) {
+
+        val currentUserList = _users.value
+
+        val existingUser = currentUserList.firstOrNull { u ->
+            u.email == user.email
+        }
+
+        if(existingUser != null) {
+            throw Exception("User already exists")
+        }
+
+        Log.d("UserViewModel.addToUserList", "Current List: $currentUserList")
+
+        _users.update { currentEntries ->
+            listOf(user) + currentEntries
+        }
+
+        this.updateUserData(user)
+    }
+
+    // TODO: remove after backend integration
+    fun login(email: String, password: String)  {
+        Log.d("UserViewModel.login", "Current List: ${_users.value}")
+
+        val user = _users.value.firstOrNull { user ->
+            user.email == email  && user.password == password
+        }
+
+        if(user == null) {
+            throw Exception("User not found")
+        }
+
+        _userDummyData.update {
+            user
+        }
+    }
+
+    // TODO: remove after backend integration
+    fun logout()  {
+        _userDummyData.update {
+            null
+        }
+    }
+}
+
+// TODO: remove after backend integration
+private fun generateInitialUser(): User {
+    return User(
+        id = UUID.randomUUID(),
+        firstName = "John",
+        lastName = "Doe",
+        email = "test@gmail.com",
+        password = "123",
+        profileImageURL = "https://randomuser.me/api/portraits/men/75.jpg",
+    )
+}
+
+// TODO: remove after backend integration
+fun getInitialUserListData(): List<User> {
+    return List(1) { index ->
+        generateInitialUser()
     }
 }

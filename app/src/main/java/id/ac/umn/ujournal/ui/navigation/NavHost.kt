@@ -29,11 +29,12 @@ fun UJournalNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = Home.route,
+        startDestination = Login.route,
         modifier = modifier
     ) {
         composable(route = Login.route) {
             LoginScreen(
+                userViewModel = userViewModel,
                 onSignUpClick = {
                     navController.navigate(Register.route)
                 },
@@ -102,12 +103,13 @@ fun UJournalNavHost(
         }
         composable(route = Profile.route) {
             ProfileScreen(
+                userViewModel = userViewModel,
                 onBackButtonClick = {
                     if (navController.previousBackStackEntry != null) {
                         navController.navigateUp()
                     }
                 },
-                onLogoutButtonClick = {
+                navigateToLoginScreen = {
                     navController.navigate(Login.route)
                 }
             )

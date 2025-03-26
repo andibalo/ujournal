@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal.ui.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.model.User
+import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import java.util.UUID
 
@@ -43,14 +45,24 @@ fun RegisterScreen(
     fun onRegisterClick() {
         // TODO: add validation
 
-        userViewModel.updateUserData(User(
-            id = UUID.randomUUID(),
-            firstName = firstNameInput,
-            lastName = lastNameInput,
-            email = emailInput,
-            profileImageURL = null,
-            password = confirmPasswordInput
-        ))
+        try {
+            userViewModel.register(User(
+                id = UUID.randomUUID(),
+                firstName = firstNameInput,
+                lastName = lastNameInput,
+                email = emailInput,
+                profileImageURL = null,
+                password = confirmPasswordInput
+            ))
+
+            navigateToHomeScreen()
+        }catch (e: Exception){
+
+            Log.d("RegisterScreen.onRegisterClick", e.message ?: "Unknown Error")
+            Log.d("RegisterScreen.onRegisterClick", e.stackTraceToString())
+
+            // TODO: show snackbar if user register failed
+        }
     }
 
     Surface(
@@ -89,25 +101,25 @@ fun RegisterScreen(
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
             )
-            OutlinedTextField(
+            OutlinedPasswordTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = passwordInput,
-                onValueChange = { passwordInput = it },
-                label = { Text("Password") },
+            ) {
+                passwordInput = it
+            }
+            OutlinedPasswordTextField(
                 modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
                 value = confirmPasswordInput,
-                onValueChange = { confirmPasswordInput = it },
-                label = { Text("Confirm Password") },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                label =  "Confirm Password" ,
+            ) {
+                confirmPasswordInput = it
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     onRegisterClick()
-                    navigateToHomeScreen()
                 }
             ) {
                 Text(text = "Register")

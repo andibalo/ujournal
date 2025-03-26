@@ -29,18 +29,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.viewmodel.UserState
+import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    userViewModel: UserViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
-    onLogoutButtonClick : () -> Unit = {}
+    navigateToLoginScreen : () -> Unit = {}
 ) {
+    val userState by userViewModel.userState.collectAsState()
+    val user = (userState as UserState.Success).user
+
+    fun onLogoutClick() {
+        userViewModel.logout()
+        navigateToLoginScreen()
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -108,8 +122,7 @@ fun ProfileScreen(
                             )
                         }
                         Text(
-                            /* TODO : make user name dynamic */
-                            text = "John Doe",
+                            text = user.firstName + " " + user.lastName,
                             textAlign = TextAlign.Center,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
@@ -127,7 +140,11 @@ fun ProfileScreen(
                     }
                 }
             }
-          Button(onClick = onLogoutButtonClick) {
+          Button(
+            onClick = {
+                onLogoutClick()
+            }
+          ) {
               Text(text = "Logout")
           }
         }
