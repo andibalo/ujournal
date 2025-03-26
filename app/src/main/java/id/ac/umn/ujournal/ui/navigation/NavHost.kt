@@ -100,7 +100,7 @@ fun UJournalNavHost(
             composable(route = Map.route) {
                 MapScreen(
                     journalEntryViewModel = journalEntryViewModel,
-                    onMarkerClick = { journalEntry ->
+                    navigateToJournalDetail = { journalEntry ->
                         navController.navigate("${JournalEntryDetail.route}/${journalEntry.id}")
                     }
                 )

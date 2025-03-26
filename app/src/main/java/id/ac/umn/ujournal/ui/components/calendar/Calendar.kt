@@ -76,8 +76,6 @@ fun Calendar(
                 firstDayOfWeek = daysOfWeek.first(),
             )
 
-            // TODO: create logic to get journal entries on date select
-
             VerticalCalendar(
                 state = state,
                 contentPadding = PaddingValues(bottom = 100.dp),
@@ -98,7 +96,6 @@ fun Calendar(
 
             )
         }
-
     }
 }
 
