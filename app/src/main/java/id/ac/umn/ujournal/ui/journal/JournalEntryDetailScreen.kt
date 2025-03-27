@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
@@ -83,77 +85,91 @@ fun JournalEntryDetailScreen(
                             // TODO: add edit functionality
                         }
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Edit journal entry")
+                        Icon(
+                            Icons.Filled.Edit,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            contentDescription = "Edit journal entry"
+                        )
                     }
                 }
             )
         },
     ) { padding: PaddingValues ->
-        Column(
-            modifier =
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-            ,
-        ) {
-            if(journalEntry.imageURI != null){
-                AsyncImage(
-                    model = journalEntry.imageURI,
-                    modifier = Modifier.fillMaxWidth().height(250.dp),
-                    contentDescription = "Journal Entry Photo",
-                    contentScale = ContentScale.Crop
-                )
-            }
+       Surface(
+           Modifier
+               .padding(padding)
+               .fillMaxSize()
+       ) {
+           Column(
+               modifier =
+               Modifier
+                   .fillMaxSize()
+                   .verticalScroll(rememberScrollState())
+               ,
+           ) {
+               if(journalEntry.imageURI != null){
+                   AsyncImage(
+                       model = journalEntry.imageURI,
+                       modifier = Modifier.fillMaxWidth().height(250.dp),
+                       contentDescription = "Journal Entry Photo",
+                       contentScale = ContentScale.Crop
+                   )
+               }
 
-            Column(
-                modifier = Modifier.padding(10.dp)
-            ) {
-                if(journalEntry.latitude != null && journalEntry.longitude != null){
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
-                        Column {
-                            getAddressFromLatLong(
-                                useDeprecated = true,
-                                lat = journalEntry.latitude!!,
-                                lon = journalEntry.longitude!!,
-                                context =  LocalContext.current
-                            )?.let {
-                                Text(
-                                    text = it.getAddressLine(0),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                                Spacer(Modifier.padding(2.dp))
-                            }
-                            Text(
-                                text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
+               Column(
+                   modifier = Modifier.padding(10.dp)
+               ) {
+                   if(journalEntry.latitude != null && journalEntry.longitude != null){
+                       Row(
+                           verticalAlignment = Alignment.CenterVertically,
+                           horizontalArrangement = Arrangement.spacedBy(4.dp)
+                       ) {
+                           Icon(
+                               Icons.Filled.LocationOn,
+                               contentDescription = "Location icon",
+                               tint = MaterialTheme.colorScheme.error
+                           )
+                           Column {
+                               getAddressFromLatLong(
+                                   useDeprecated = true,
+                                   lat = journalEntry.latitude!!,
+                                   lon = journalEntry.longitude!!,
+                                   context =  LocalContext.current
+                               )?.let {
+                                   Text(
+                                       text = it.getAddressLine(0),
+                                       style = MaterialTheme.typography.labelMedium
+                                   )
+                                   Spacer(Modifier.padding(2.dp))
+                               }
+                               Text(
+                                   text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude),
+                                   style = MaterialTheme.typography.bodySmall
+                               )
+                           }
 
-                    }
-
-
-                }
-                Spacer(Modifier.padding(vertical = 4.dp))
-                Text(
-                    text = journalEntry.createdAt.format(ddMMMMyyyyDateTimeFormatter),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(Modifier.padding(vertical = 6.dp))
-                Text(
-                    text = journalEntry.title,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Spacer(Modifier.padding(vertical = 4.dp))
-                Text(
-                    text = journalEntry.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+                       }
+                   }
+                   Spacer(Modifier.padding(vertical = 6.dp))
+                   Text(
+                       text =  journalEntry.createdAt.format(ddMMMMyyyyDateTimeFormatter) + ", " +journalEntry.createdAt.format(
+                           HourTimeFormatter24),
+                       style = MaterialTheme.typography.titleMedium,
+                       color = MaterialTheme.colorScheme.secondary
+                   )
+                   Spacer(Modifier.padding(vertical = 4.dp))
+                   Text(
+                       text = journalEntry.title,
+                       style = MaterialTheme.typography.titleLarge,
+                       color = MaterialTheme.colorScheme.primary
+                   )
+                   Spacer(Modifier.padding(vertical = 4.dp))
+                   Text(
+                       text = journalEntry.description,
+                       style = MaterialTheme.typography.bodyMedium
+                   )
+               }
+           }
+       }
     }
 }

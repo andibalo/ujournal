@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +64,11 @@ fun CalendarScreen(
                 },
                 actions = {
                     IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile")
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = "User Profile",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 showBackButton = false

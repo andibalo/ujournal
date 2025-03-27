@@ -24,8 +24,8 @@ fun UJournalTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        containerColor = MaterialTheme.colorScheme.primary,
+        titleContentColor = MaterialTheme.colorScheme.onPrimary
     ),
     onBackButtonClick: () -> Unit = {},
     showBackButton: Boolean = true,
@@ -39,7 +39,8 @@ fun UJournalTopAppBar(
                 IconButton(onClick = onBackButtonClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = "Back arrow",
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

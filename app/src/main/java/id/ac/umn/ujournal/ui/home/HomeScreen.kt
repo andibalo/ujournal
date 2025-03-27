@@ -1,8 +1,12 @@
 package id.ac.umn.ujournal.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -13,6 +17,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,6 +31,7 @@ import id.ac.umn.ujournal.ui.components.common.ErrorScreen
 import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryList
+import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
@@ -42,6 +48,8 @@ fun HomeScreen(
 
     val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
     val userState by userViewModel.userState.collectAsState()
+
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -69,35 +77,56 @@ fun HomeScreen(
                 },
                 actions = {
                     // TODO: implement search
-                    IconButton(onClick = { /* Do something */ }) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    IconButton(
+                        onClick = { /* Do something */ }
+                    ) {
+                        Icon(
+                            Icons.Filled.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                     IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile")
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = "User Profile",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 showBackButton = false
             )
         },
         floatingActionButton = {
-            FloatingActionButton (
-                onClick = onFABClick,
-                shape = CircleShape
+            AnimatedVisibility(
+                visible = lazyListState.isScrollingUp(),
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                FloatingActionButton (
+                    onClick = onFABClick,
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                Icon(Icons.Filled.Add, "Add new journal entry floating action button")
+                    Icon(
+                        Icons.Filled.Add, "Add new journal entry floating action button",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End,
     ) { innerPadding: PaddingValues ->
         Surface (
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface
         ) {
             JournalEntryList(
                 list = journalEntries,
                 modifier = Modifier.fillMaxSize(),
-                onJournalEntryClick = onJournalEntryClick
+                onJournalEntryClick = onJournalEntryClick,
+                state = lazyListState
             )
         }
     }
 }
-

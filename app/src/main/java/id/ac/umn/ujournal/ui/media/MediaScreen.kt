@@ -73,7 +73,11 @@ fun MediaScreen(
                 },
                 actions = {
                     IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Filled.AccountCircle, contentDescription = "User Profile")
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = "User Profile",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 showBackButton = false

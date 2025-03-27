@@ -33,8 +33,11 @@ fun JournalEntryItem(
     Card(
         modifier =  modifier,
         colors = CardDefaults.cardColors(
-            containerColor =  MaterialTheme.colorScheme.primaryContainer
-        )
+            containerColor =  MaterialTheme.colorScheme.onPrimary
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
     ){
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -47,19 +50,17 @@ fun JournalEntryItem(
 
                 Text(
                     text =  formattedDate + ", " +formattedTime,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
-
                 )
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
             AsyncImage(
