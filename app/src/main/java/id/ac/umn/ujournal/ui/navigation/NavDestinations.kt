@@ -1,8 +1,8 @@
 package id.ac.umn.ujournal.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PermMedia
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,8 +17,8 @@ interface UJournalDestination {
 }
 
 object Home : UJournalDestination {
-    override val icon = Icons.Filled.Home
-    override val name = "Home"
+    override val icon = Icons.Filled.Book
+    override val name = "Journey"
     override val route = "home"
     override val routeWithArgs = null
 }
@@ -39,7 +39,7 @@ object Media : UJournalDestination {
 
 object Map : UJournalDestination {
     override val icon = Icons.Filled.Map
-    override val name = "Map"
+    override val name = "Atlas"
     override val route = "map"
     override val routeWithArgs = null
 }
