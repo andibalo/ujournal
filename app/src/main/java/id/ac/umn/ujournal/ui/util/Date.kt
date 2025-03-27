@@ -65,3 +65,8 @@ fun getWeekPageTitle(week: Week): String {
 }
 
 fun Year.yearsUntil(other: Year) = ChronoUnit.YEARS.between(this, other)
+
+fun isDaytime(dateTime: LocalDateTime): Boolean {
+    val hour = dateTime.hour
+    return hour in 5..18
+}
