@@ -17,15 +17,27 @@ import id.ac.umn.ujournal.model.JournalEntry
 @Composable
 fun JournalEntryList(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     list: List<JournalEntry>,
     onJournalEntryClick : (journalEntryID: String) -> Unit = {},
-    state : LazyListState = rememberLazyListState()
+    state : LazyListState = rememberLazyListState(),
+    listTopContent: @Composable () -> Unit = {},
+    listHeaderContent:  @Composable () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(8.dp),
-        state = state
+        state = state,
+        contentPadding = contentPadding
     ) {
+
+        item {
+            listTopContent()
+        }
+
+        item {
+            listHeaderContent()
+        }
+
         items(
             items = list,
             key = { entry -> entry.id }

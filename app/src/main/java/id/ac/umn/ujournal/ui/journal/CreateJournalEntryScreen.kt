@@ -134,7 +134,11 @@ fun CreateJournalEntryScreen(
                             onBackButtonClick()
                         }
                     ) {
-                        Icon(Icons.Filled.Done, contentDescription = "Create journal entry")
+                        Icon(
+                            Icons.Filled.Done,
+                            contentDescription = "Create journal entry",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             )

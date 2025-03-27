@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryList
@@ -70,7 +71,8 @@ fun CalendarDataDetailScreen(
                     journalEntry.createdAt.toLocalDate().toString() == selectedDate
                 },
                 modifier = Modifier.fillMaxSize(),
-                onJournalEntryClick = onJournalEntryClick
+                onJournalEntryClick = onJournalEntryClick,
+                contentPadding = PaddingValues(8.dp)
             )
         }
     }
