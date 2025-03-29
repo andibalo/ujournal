@@ -14,6 +14,7 @@ import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarControllerProvid
 import id.ac.umn.ujournal.ui.home.HomeScreen
 import id.ac.umn.ujournal.ui.journal.CreateJournalEntryScreen
 import id.ac.umn.ujournal.ui.journal.JournalEntryDetailScreen
+import id.ac.umn.ujournal.ui.journal.EditJournalEntryScreen
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
@@ -129,6 +130,23 @@ fun UJournalNavHost(
                 )
             }
             composable(
+                route = "${EditJournalEntry.route}/{journalEntryID}",
+            ) { navBackStackEntry ->
+
+                val journalEntryID =
+                    navBackStackEntry.arguments?.getString("journalEntryID")
+
+                EditJournalEntryScreen(
+                    journalEntryID = journalEntryID,
+                    journalEntryViewModel = journalEntryViewModel,
+                    onBackButtonClick = {
+                        if (navController.previousBackStackEntry != null) {
+                            navController.navigateUp()
+                        }
+                    }
+                )
+            }
+            composable(
                 route = JournalEntryDetail.routeWithArgs,
                 arguments =  JournalEntryDetail.arguments
             ) { navBackStackEntry ->
@@ -144,6 +162,9 @@ fun UJournalNavHost(
                             navController.navigateUp()
                         }
                     },
+                    onEditButtonClick = { journalEntryID ->
+                        navController.navigate("${EditJournalEntry.route}/$journalEntryID")
+                    }
                 )
             }
             composable(

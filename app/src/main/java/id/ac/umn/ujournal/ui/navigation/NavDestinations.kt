@@ -72,6 +72,13 @@ object CreateJournalEntry : UJournalDestination {
     override val routeWithArgs = null
 }
 
+object EditJournalEntry : UJournalDestination {
+    override val icon = null
+    override val name = "Edit Journal Entry"
+    override val route = "journal-entry/edit"
+    override val routeWithArgs = null
+}
+
 object JournalEntryDetail : UJournalDestination {
 
     override val icon = null

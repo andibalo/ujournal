@@ -1,29 +1,14 @@
 package id.ac.umn.ujournal.ui.journal
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -42,15 +27,16 @@ import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 fun JournalEntryDetailScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     journalEntryID: String?,
-    onBackButtonClick : () -> Unit = {},
+    onBackButtonClick: () -> Unit = {},
+    onEditButtonClick: (String) -> Unit
 ) {
-
     if (journalEntryID == null) {
         onBackButtonClick()
         return
     }
 
     val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (journalEntry == null) {
         onBackButtonClick()
@@ -61,18 +47,10 @@ fun JournalEntryDetailScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             UJournalTopAppBar(
-                title = {
-                    Text(
-                        text = "Journal Detail",
-                    )
-                },
+                title = { Text(text = "Journal Detail") },
                 onBackButtonClick = onBackButtonClick,
                 actions = {
-                    IconButton(
-                        onClick = {
-                            // TODO: add delete functionality
-                        }
-                    ) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(
                             Icons.Filled.Delete,
                             tint = MaterialTheme.colorScheme.error,
@@ -80,11 +58,9 @@ fun JournalEntryDetailScreen(
                         )
                     }
                     Spacer(Modifier.padding(4.dp))
-                    IconButton(
-                        onClick = {
-                            // TODO: add edit functionality
-                        }
-                    ) {
+                    IconButton(onClick = {
+                        onEditButtonClick(journalEntryID)
+                    }) {
                         Icon(
                             Icons.Filled.Edit,
                             tint = MaterialTheme.colorScheme.onPrimary,
@@ -95,81 +71,94 @@ fun JournalEntryDetailScreen(
             )
         },
     ) { padding: PaddingValues ->
-       Surface(
-           Modifier
-               .padding(padding)
-               .fillMaxSize()
-       ) {
-           Column(
-               modifier =
-               Modifier
-                   .fillMaxSize()
-                   .verticalScroll(rememberScrollState())
-               ,
-           ) {
-               if(journalEntry.imageURI != null){
-                   AsyncImage(
-                       model = journalEntry.imageURI,
-                       modifier = Modifier.fillMaxWidth().height(250.dp),
-                       contentDescription = "Journal Entry Photo",
-                       contentScale = ContentScale.Crop
-                   )
-               }
+        Surface(
+            Modifier.padding(padding).fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            ) {
+                if (journalEntry.imageURI != null) {
+                    AsyncImage(
+                        model = journalEntry.imageURI,
+                        modifier = Modifier.fillMaxWidth().height(250.dp),
+                        contentDescription = "Journal Entry Photo",
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-               Column(
-                   modifier = Modifier.padding(10.dp)
-               ) {
-                   if(journalEntry.latitude != null && journalEntry.longitude != null){
-                       Row(
-                           verticalAlignment = Alignment.CenterVertically,
-                           horizontalArrangement = Arrangement.spacedBy(4.dp)
-                       ) {
-                           Icon(
-                               Icons.Filled.LocationOn,
-                               contentDescription = "Location icon",
-                               tint = MaterialTheme.colorScheme.error
-                           )
-                           Column {
-                               getAddressFromLatLong(
-                                   useDeprecated = true,
-                                   lat = journalEntry.latitude!!,
-                                   lon = journalEntry.longitude!!,
-                                   context =  LocalContext.current
-                               )?.let {
-                                   Text(
-                                       text = it.getAddressLine(0),
-                                       style = MaterialTheme.typography.labelMedium
-                                   )
-                                   Spacer(Modifier.padding(2.dp))
-                               }
-                               Text(
-                                   text = "%.4f".format(journalEntry.latitude) + ", %.4f".format(journalEntry.longitude),
-                                   style = MaterialTheme.typography.bodySmall
-                               )
-                           }
+                Column(modifier = Modifier.padding(10.dp)) {
+                    if (journalEntry.latitude != null && journalEntry.longitude != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.LocationOn,
+                                contentDescription = "Location icon",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Column {
+                                getAddressFromLatLong(
+                                    useDeprecated = true,
+                                    lat = journalEntry.latitude!!,
+                                    lon = journalEntry.longitude!!,
+                                    context = LocalContext.current
+                                )?.let {
+                                    Text(
+                                        text = it.getAddressLine(0),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    Spacer(Modifier.padding(2.dp))
+                                }
+                                Text(
+                                    text = "%.4f, %.4f".format(journalEntry.latitude, journalEntry.longitude),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.padding(vertical = 6.dp))
+                    Text(
+                        text = journalEntry.createdAt.format(ddMMMMyyyyDateTimeFormatter) + ", " +
+                                journalEntry.createdAt.format(HourTimeFormatter24),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(Modifier.padding(vertical = 4.dp))
+                    Text(
+                        text = journalEntry.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.padding(vertical = 4.dp))
+                    Text(
+                        text = journalEntry.description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
 
-                       }
-                   }
-                   Spacer(Modifier.padding(vertical = 6.dp))
-                   Text(
-                       text =  journalEntry.createdAt.format(ddMMMMyyyyDateTimeFormatter) + ", " +journalEntry.createdAt.format(
-                           HourTimeFormatter24),
-                       style = MaterialTheme.typography.titleMedium,
-                       color = MaterialTheme.colorScheme.secondary
-                   )
-                   Spacer(Modifier.padding(vertical = 4.dp))
-                   Text(
-                       text = journalEntry.title,
-                       style = MaterialTheme.typography.titleLarge,
-                       color = MaterialTheme.colorScheme.primary
-                   )
-                   Spacer(Modifier.padding(vertical = 4.dp))
-                   Text(
-                       text = journalEntry.description,
-                       style = MaterialTheme.typography.bodyMedium
-                   )
-               }
-           }
-       }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Journal Entry") },
+            text = { Text("Are you sure you want to delete this journal entry?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    journalEntryViewModel.remove(journalEntryID)
+                    showDeleteDialog = false
+                    onBackButtonClick()
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("No")
+                }
+            }
+        )
     }
 }
