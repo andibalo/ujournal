@@ -32,6 +32,39 @@ class JournalEntryViewModel : ViewModel() {
         return _journalEntries.value.firstOrNull { it.id.toString() == journalEntryID }
     }
 
+    fun update(
+        journalEntryID: String,
+        newTitle: String,
+        newDescription: String,
+        newImageURI: String?,
+        newLatitude: Double?,
+        newLongitude: Double?,
+        newDate: LocalDateTime?,
+        updatedAt: LocalDateTime
+    ) {
+        Log.d("JournalEntryViewModel", "Updating entry with ID: $journalEntryID")
+
+        _journalEntries.update { currentEntries ->
+            currentEntries.map { entry ->
+                if (entry.id.toString() == journalEntryID) {
+                    entry.copy(
+                        title = newTitle,
+                        description = newDescription,
+                        imageURI = newImageURI,
+                        latitude = newLatitude,
+                        longitude = newLongitude,
+                        createdAt = newDate ?: entry.createdAt,
+                        updatedAt = updatedAt
+                    )
+                } else {
+                    entry
+                }
+            }
+        }
+    }
+
+
+
     fun remove(journalEntryID: String) {
         Log.d("JournalEntryViewModel", "Removing entry with ID: $journalEntryID")
 
@@ -50,7 +83,6 @@ class JournalEntryViewModel : ViewModel() {
                 dateFormatter.format(date)
             }
     }
-
 }
 
 fun createTestJournalEntry(

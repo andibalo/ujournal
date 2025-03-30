@@ -72,6 +72,14 @@ object CreateJournalEntry : UJournalDestination {
     override val routeWithArgs = null
 }
 
+object EditJournalEntry : UJournalDestination {
+    override val icon = null
+    override val name = "Edit Journal Entry"
+    override val route = "journal-entry/edit"
+    const val journalEntryIDArg = "journalEntryID"
+    override val routeWithArgs = "${route}/{${journalEntryIDArg}}"
+}
+
 object JournalEntryDetail : UJournalDestination {
 
     override val icon = null
@@ -114,5 +122,6 @@ val uJournalAppScreens = listOf(
     Login,
     Register,
     CreateJournalEntry,
+    EditJournalEntry,
     JournalEntryDetail
 )

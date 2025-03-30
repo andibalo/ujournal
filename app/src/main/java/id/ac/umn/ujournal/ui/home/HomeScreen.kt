@@ -1,66 +1,42 @@
 package id.ac.umn.ujournal.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.ui.components.common.ErrorScreen
 import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
-import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryList
-import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryListHeader
-import id.ac.umn.ujournal.ui.components.journalentry.JournalEntryListSummary
+import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
-import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
-import id.ac.umn.ujournal.viewmodel.UserState
-import id.ac.umn.ujournal.viewmodel.UserViewModel
+import id.ac.umn.ujournal.viewmodel.*
+import id.ac.umn.ujournal.ui.components.common.SearchBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     userViewModel: UserViewModel = viewModel(),
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
-    onProfileClick : () -> Unit = {},
-    onFABClick : () -> Unit = {},
-    onJournalEntryClick : (journalEntryID: String) -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onFABClick: () -> Unit = {},
+    onJournalEntryClick: (journalEntryID: String) -> Unit = {},
 ) {
-
     val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
     val userState by userViewModel.userState.collectAsState()
-
     var isSortedDescending by remember { mutableStateOf(true) }
+    var isSearchActive by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
+    val lazyListState = rememberLazyListState()
 
-    val sortedEntries by remember {
+    val sortedEntries by remember(journalEntries, isSortedDescending) {
         derivedStateOf {
             if (isSortedDescending) {
                 journalEntries.sortedByDescending { it.createdAt }
@@ -70,7 +46,15 @@ fun HomeScreen(
         }
     }
 
-    val lazyListState = rememberLazyListState()
+    val filteredEntries by remember {
+        derivedStateOf {
+            if (searchText.isBlank()) sortedEntries
+            else sortedEntries.filter {
+                it.title.contains(searchText, ignoreCase = true) ||
+                        it.description.contains(searchText, ignoreCase = true)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -91,19 +75,54 @@ fun HomeScreen(
         topBar = {
             UJournalTopAppBar(
                 title = {
-                    val user = (userState as UserState.Success).user
-                    Text(
-                        text = "Hello, " + user.firstName
-                    )
+                    AnimatedContent(
+                        targetState = isSearchActive,
+                        transitionSpec = {
+                            fadeIn(
+                                animationSpec = tween(220)
+                            ) togetherWith fadeOut(animationSpec = tween(90))
+                        }
+                    ) { targetState ->
+                        val user = (userState as UserState.Success).user
+
+                        if (targetState) {
+                            SearchBar(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                onCloseSearch = { isSearchActive = false },
+                                onClearSearch = {
+                                    searchText = ""
+                                },
+                                value = searchText,
+                                onTextChange = {
+                                    searchText = it
+                                },
+                                placeholder = {
+                                    Text("Search journals...")
+                                }
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                            ) {
+                                Text(text = "Hello, " + user.firstName)
+                            }
+                        }
+                    }
                 },
                 actions = {
-                    // TODO: implement search
-                    IconButton(
-                        onClick = { /* Do something */ }
-                    ) {
+                    IconButton(onClick = {
+                        if (isSearchActive) {
+                            isSearchActive = false
+                            searchText = ""
+                        } else {
+                            isSearchActive = true
+                        }
+                    }) {
                         Icon(
-                            Icons.Filled.Search,
-                            contentDescription = "Search",
+                            imageVector = if (isSearchActive) Icons.Filled.Close else Icons.Filled.Search,
+                            contentDescription = if (isSearchActive) "Close search" else "Search",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
@@ -124,13 +143,14 @@ fun HomeScreen(
                 enter = slideInVertically(initialOffsetY = { it }),
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
-                FloatingActionButton (
+                FloatingActionButton(
                     onClick = onFABClick,
                     shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Icon(
-                        Icons.Filled.Add, "Add new journal entry floating action button",
+                        Icons.Filled.Add,
+                        "Add new journal entry floating action button",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -138,22 +158,23 @@ fun HomeScreen(
         },
         floatingActionButtonPosition = FabPosition.End,
     ) { innerPadding: PaddingValues ->
-        Surface (
-            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
+        Surface(
+            modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
+                .fillMaxSize(),
             color = MaterialTheme.colorScheme.surface
         ) {
             JournalEntryList(
-                list = sortedEntries,
+                list = filteredEntries,
                 modifier = Modifier.fillMaxSize(),
                 onJournalEntryClick = onJournalEntryClick,
                 state = lazyListState,
                 contentPadding = PaddingValues(8.dp),
                 listTopContent = {
-                    // TODO: adjust daily streak value after backend integration
                     JournalEntryListSummary(
                         modifier = Modifier.fillMaxWidth(),
-                        entriesCreated = sortedEntries.size,
-                        dailyStreak = sortedEntries.size
+                        entriesCreated = journalEntries.size,
+                        dailyStreak = journalEntries.size
                     )
                     Spacer(Modifier.padding(bottom = 8.dp))
                 },
