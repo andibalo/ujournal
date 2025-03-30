@@ -1,18 +1,15 @@
 package id.ac.umn.ujournal.ui.home
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.ui.components.common.ErrorScreen
@@ -22,7 +19,6 @@ import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.*
 import id.ac.umn.ujournal.ui.components.common.SearchBar
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,8 +33,9 @@ fun HomeScreen(
     val userState by userViewModel.userState.collectAsState()
     var isSortedDescending by remember { mutableStateOf(true) }
     var isSearchActive by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
     val lazyListState = rememberLazyListState()
-    
+
     val sortedEntries by remember(journalEntries, isSortedDescending) {
         derivedStateOf {
             if (isSortedDescending) {
@@ -49,7 +46,15 @@ fun HomeScreen(
         }
     }
 
-    var filteredEntries by remember { mutableStateOf(sortedEntries) }
+    val filteredEntries by remember {
+        derivedStateOf {
+            if (searchText.isBlank()) sortedEntries
+            else sortedEntries.filter {
+                it.title.contains(searchText, ignoreCase = true) ||
+                        it.description.contains(searchText, ignoreCase = true)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -70,35 +75,50 @@ fun HomeScreen(
         topBar = {
             UJournalTopAppBar(
                 title = {
-                    AnimatedVisibility(
-                        visible = !isSearchActive,
-                        enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
-                        exit = fadeOut() + slideOutHorizontally(targetOffsetX = { -it })
-                    ) {
+                    AnimatedContent(
+                        targetState = isSearchActive,
+                        transitionSpec = {
+                            fadeIn(
+                                animationSpec = tween(220)
+                            ) togetherWith fadeOut(animationSpec = tween(90))
+                        }
+                    ) { targetState ->
                         val user = (userState as UserState.Success).user
-                        Text(text = "Hello, " + user.firstName)
-                    }
-                    AnimatedVisibility(
-                        visible = isSearchActive,
-                        enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
-                        exit = fadeOut() + slideOutHorizontally(targetOffsetX = { -it })
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                        ) {
+
+                        if (targetState) {
                             SearchBar(
-                                journalEntries = sortedEntries,
-                                onFilteredEntriesChanged = { filteredEntries = it },
-                                onCloseSearch = { isSearchActive = false }
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                onCloseSearch = { isSearchActive = false },
+                                onClearSearch = {
+                                    searchText = ""
+                                },
+                                value = searchText,
+                                onTextChange = {
+                                    searchText = it
+                                },
+                                placeholder = {
+                                    Text("Search journals...")
+                                }
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                            ) {
+                                Text(text = "Hello, " + user.firstName)
+                            }
                         }
                     }
                 },
                 actions = {
                     IconButton(onClick = {
-                        isSearchActive = !isSearchActive
+                        if (isSearchActive) {
+                            isSearchActive = false
+                            searchText = ""
+                        } else {
+                            isSearchActive = true
+                        }
                     }) {
                         Icon(
                             imageVector = if (isSearchActive) Icons.Filled.Close else Icons.Filled.Search,
