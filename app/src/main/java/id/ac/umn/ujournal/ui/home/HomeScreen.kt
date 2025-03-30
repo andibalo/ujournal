@@ -21,6 +21,8 @@ import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.*
+import id.ac.umn.ujournal.ui.components.common.SearchBar
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,9 +37,9 @@ fun HomeScreen(
     val userState by userViewModel.userState.collectAsState()
     var isSortedDescending by remember { mutableStateOf(true) }
     var isSearchActive by remember { mutableStateOf(false) }
-    var searchText by remember { mutableStateOf("") }
-
-    val sortedEntries by remember {
+    val lazyListState = rememberLazyListState()
+    
+    val sortedEntries by remember(journalEntries, isSortedDescending) {
         derivedStateOf {
             if (isSortedDescending) {
                 journalEntries.sortedByDescending { it.createdAt }
@@ -47,17 +49,7 @@ fun HomeScreen(
         }
     }
 
-    val filteredEntries by remember {
-        derivedStateOf {
-            if (searchText.isBlank()) sortedEntries
-            else sortedEntries.filter {
-                it.title.contains(searchText, ignoreCase = true) ||
-                        it.description.contains(searchText, ignoreCase = true)
-            }
-        }
-    }
-
-    val lazyListState = rememberLazyListState()
+    var filteredEntries by remember { mutableStateOf(sortedEntries) }
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -96,34 +88,17 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                         ) {
-                            TextField(
-                                value = searchText,
-                                onValueChange = { searchText = it },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
-                                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = { isSearchActive = false }),
-                                placeholder = { Text("Search journals...") },
-                                trailingIcon = {
-                                    if (searchText.isNotBlank()) {
-                                        IconButton(onClick = { searchText = "" }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Clear search")
-                                        }
-                                    }
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                            SearchBar(
+                                journalEntries = sortedEntries,
+                                onFilteredEntriesChanged = { filteredEntries = it },
+                                onCloseSearch = { isSearchActive = false }
                             )
                         }
                     }
                 },
                 actions = {
                     IconButton(onClick = {
-                        if (isSearchActive) {
-                            isSearchActive = false
-                            searchText = "" // Clear search when closing
-                        } else {
-                            isSearchActive = true
-                        }
+                        isSearchActive = !isSearchActive
                     }) {
                         Icon(
                             imageVector = if (isSearchActive) Icons.Filled.Close else Icons.Filled.Search,
@@ -164,7 +139,9 @@ fun HomeScreen(
         floatingActionButtonPosition = FabPosition.End,
     ) { innerPadding: PaddingValues ->
         Surface(
-            modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
+            modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
+                .fillMaxSize(),
             color = MaterialTheme.colorScheme.surface
         ) {
             JournalEntryList(
@@ -176,8 +153,8 @@ fun HomeScreen(
                 listTopContent = {
                     JournalEntryListSummary(
                         modifier = Modifier.fillMaxWidth(),
-                        entriesCreated = filteredEntries.size,
-                        dailyStreak = filteredEntries.size
+                        entriesCreated = journalEntries.size,
+                        dailyStreak = journalEntries.size
                     )
                     Spacer(Modifier.padding(bottom = 8.dp))
                 },

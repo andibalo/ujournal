@@ -146,19 +146,28 @@ fun JournalEntryDetailScreen(
             title = { Text("Delete Journal Entry") },
             text = { Text("Are you sure you want to delete this journal entry?") },
             confirmButton = {
-                TextButton(onClick = {
-                    journalEntryViewModel.remove(journalEntryID)
-                    showDeleteDialog = false
-                    onBackButtonClick()
-                }) {
-                    Text("Yes")
+                TextButton(
+                    onClick = {
+                        journalEntryViewModel.remove(journalEntryID)
+                        showDeleteDialog = false
+                        onBackButtonClick()
+                    }
+                ) {
+                    Text(
+                        "Yes",
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("No")
+                    Text(
+                        "No",
+                        color = MaterialTheme.colorScheme.scrim
+                    )
                 }
             }
         )
     }
+
 }
