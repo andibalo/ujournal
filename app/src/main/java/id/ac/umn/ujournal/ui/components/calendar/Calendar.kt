@@ -41,6 +41,7 @@ import com.kizitonwose.calendar.compose.VerticalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
+import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.daysOfWeek
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.util.displayText
@@ -85,9 +86,9 @@ fun Calendar(
                         value,
                         today = today,
                         selectedDate = selectedDate,
-                        shouldShowBottomIndicator = journalEntryExists
+                        shouldShowBottomIndicator = value.position == DayPosition.MonthDate && journalEntryExists
                     ) { day ->
-                        if(journalEntryExists) {
+                        if(day.position == DayPosition.MonthDate && journalEntryExists) {
                             onDayClick(day)
                         }
                     }
@@ -112,6 +113,7 @@ private fun Day(
         modifier = Modifier
             .aspectRatio(1f) // This is important for square-sizing!
             .clickable(
+                enabled = day.position == DayPosition.MonthDate,
                 onClick = { onClick(day) },
             )
             .backgroundHighlight(
