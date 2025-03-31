@@ -1,9 +1,6 @@
 package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,17 +16,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
+import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.ui.components.journalentry.CreateJournalEntryBottomTab
+import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,10 +57,22 @@ fun EditJournalEntryScreen(
     var createdAt by rememberSaveable { mutableStateOf(journalEntry.createdAt) }
     var showLocationPicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            photoUri = uri
+    var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+    fun showBottomSheet() {
+        coroutineScope.launch {
+            sheetState.show()
+            isBottomSheetVisible = true
+        }
+    }
+
+    fun hideBottomSheet() {
+        coroutineScope.launch {
+            sheetState.hide()
+            isBottomSheetVisible = false
         }
     }
 
@@ -125,6 +137,16 @@ fun EditJournalEntryScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            CreateJournalEntryBottomTab(
+                onMediaClick = {
+                    showBottomSheet()
+                },
+                onLocationClick = {
+                    showLocationPicker = true
+                }
+            )
         }
     ) { padding: PaddingValues ->
         Column(
@@ -142,58 +164,17 @@ fun EditJournalEntryScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier.padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
-                ) {
-                    Text("Change Image")
-                    Spacer(Modifier.padding(horizontal = 4.dp))
-                    Icon(Icons.Filled.PermMedia, contentDescription = "Change Image")
-                }
-
-                Spacer(Modifier.padding(horizontal = 10.dp))
-
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = { showLocationPicker = true }
-                ) {
-                    Text("Change Geotag")
-                    Spacer(Modifier.padding(horizontal = 4.dp))
-                    Icon(Icons.Filled.PersonPinCircle, contentDescription = "Change Geotag")
-                }
-            }
-
-            Row(
-                modifier = Modifier.padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(Icons.Filled.CalendarToday, contentDescription = "Date icon")
-                Column {
-                    Text(
-                        text = createdAt.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Spacer(Modifier.padding(2.dp))
-                    Button(onClick = { showDatePicker = true }) {
-                        Text("Change Date")
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                        Icon(Icons.Filled.EditCalendar, contentDescription = "Change Date")
-                    }
-                }
-            }
-
             if (latitude != null && longitude != null) {
                 Row(
                     modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
+                    Icon(
+                        Icons.Filled.LocationOn,
+                        contentDescription = "Location icon",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                     Column {
                         getAddressFromLatLong(
                             useDeprecated = true,
@@ -210,6 +191,18 @@ fun EditJournalEntryScreen(
                         )
                     }
                 }
+            }
+
+            TextButton(
+                onClick = {
+                    showDatePicker = true
+                }
+            ) {
+                Text(
+                    text = createdAt.format(ddMMMMyyyyDateTimeFormatter)
+                )
+                Spacer(Modifier.padding(horizontal = 1.dp))
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Date dropdown")
             }
 
             Column(modifier = Modifier.padding(10.dp)) {
@@ -229,6 +222,23 @@ fun EditJournalEntryScreen(
                         .verticalScroll(rememberScrollState()),
                     label = { Text("Description") }
                 )
+            }
+            if (sheetState.isVisible) {
+                UJournalBottomSheet(
+                    sheetState = sheetState,
+                    onDismiss = { hideBottomSheet() }
+                ) {
+                    MediaActions(
+                        onSuccessTakePicture = {
+                            photoUri = it
+                            hideBottomSheet()
+                        },
+                        onSuccessChooseFromGallery = {
+                            photoUri = it
+                            hideBottomSheet()
+                        }
+                    )
+                }
             }
         }
     }

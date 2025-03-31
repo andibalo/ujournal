@@ -16,15 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.PermMedia
-import androidx.compose.material.icons.filled.PersonPinCircle
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -49,6 +45,7 @@ import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.ui.components.journalentry.CreateJournalEntryBottomTab
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
@@ -155,38 +152,14 @@ fun CreateJournalEntryScreen(
             )
         },
         bottomBar = {
-            Surface {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
-                ) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            showBottomSheet()
-                        }
-                    ) {
-                        Text(text = "Media")
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                        Icon(Icons.Filled.PermMedia, contentDescription = "Upload media")
-                    }
-
-                    Spacer(Modifier.padding(horizontal = 10.dp))
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            showLocationPicker = true
-                        }
-                    ) {
-                        Text(text = "Geotag")
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                        Icon(
-                            Icons.Filled.PersonPinCircle,
-                            contentDescription = "Add journal entry geotag"
-                        )
-                    }
+            CreateJournalEntryBottomTab(
+                onMediaClick = {
+                    showBottomSheet()
+                },
+                onLocationClick = {
+                    showLocationPicker = true
                 }
-            }
+            )
         }
     ) { padding: PaddingValues ->
         Column(
@@ -228,7 +201,11 @@ fun CreateJournalEntryScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(Icons.Filled.LocationOn, contentDescription = "Location icon")
+                    Icon(
+                        Icons.Filled.LocationOn,
+                        contentDescription = "Location icon",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                     Column {
                         getAddressFromLatLong(
                             useDeprecated = true,
