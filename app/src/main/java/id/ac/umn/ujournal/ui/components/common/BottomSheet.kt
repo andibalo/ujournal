@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReusableBottomSheet(
+fun UJournalBottomSheet(
     sheetState: SheetState,
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,

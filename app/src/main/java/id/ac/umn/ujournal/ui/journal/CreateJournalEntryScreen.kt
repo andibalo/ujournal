@@ -1,12 +1,6 @@
 package id.ac.umn.ujournal.ui.journal
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,7 +46,8 @@ import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
-import id.ac.umn.ujournal.ui.components.common.ReusableBottomSheet
+import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
@@ -84,16 +78,6 @@ fun CreateJournalEntryScreen(
         mutableStateOf(currentDate)
     }
 
-    val context = LocalContext.current
-    val imageUri: Uri? by remember { mutableStateOf(null) }
-
-    val imagePicker =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) {
-                photoUri = uri
-            }
-        }
-
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -111,12 +95,6 @@ fun CreateJournalEntryScreen(
             sheetState.hide()
             isBottomSheetVisible = false
         }
-    }
-
-    fun launchCamera(context: Context, imageUri: Uri?) {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-        context.startActivity(takePictureIntent)
     }
 
     fun onSubmitClick() {
@@ -308,28 +286,20 @@ fun CreateJournalEntryScreen(
                 )
             }
             if (sheetState.isVisible) {
-                ReusableBottomSheet(
+                UJournalBottomSheet(
                     sheetState = sheetState,
                     onDismiss = { hideBottomSheet() }
                 ) {
-                    // Bottom sheet content
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Button(onClick = {
-                            // TODO: handle crash???
-                            launchCamera(context, imageUri)
-                        }) {
-                            Text("Camera")
+                    MediaActions(
+                        onSuccessTakePicture = {
+                            photoUri = it
+                            hideBottomSheet()
+                        },
+                        onSuccessChooseFromGallery = {
+                            photoUri = it
+                            hideBottomSheet()
                         }
-                        Button(onClick = {
-                            imagePicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )
-                        }) {
-                            Text("Gallery")
-                        }
-                    }
+                    )
                 }
             }
         }
