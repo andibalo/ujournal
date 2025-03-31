@@ -25,7 +25,7 @@ import java.util.Date
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ImagePicker(
+fun CameraLauncher(
     modifier: Modifier = Modifier,
     onSuccessTakePicture: (Uri) -> Unit = {},
     content: @Composable (() -> Unit)? = null,

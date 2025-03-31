@@ -37,7 +37,7 @@ fun MediaActions(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        ImagePicker(
+        CameraLauncher(
             modifier = modifier.fillMaxWidth(),
             onSuccessTakePicture = onSuccessTakePicture
         ){
