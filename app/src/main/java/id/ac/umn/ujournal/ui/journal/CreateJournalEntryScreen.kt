@@ -1,6 +1,9 @@
 package id.ac.umn.ujournal.ui.journal
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -81,6 +84,9 @@ fun CreateJournalEntryScreen(
         mutableStateOf(currentDate)
     }
 
+    val context = LocalContext.current
+    val imageUri: Uri? by remember { mutableStateOf(null) }
+
     val imagePicker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -105,6 +111,12 @@ fun CreateJournalEntryScreen(
             sheetState.hide()
             isBottomSheetVisible = false
         }
+    }
+
+    fun launchCamera(context: Context, imageUri: Uri?) {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        context.startActivity(takePictureIntent)
     }
 
     fun onSubmitClick() {
@@ -302,7 +314,10 @@ fun CreateJournalEntryScreen(
                 ) {
                     // Bottom sheet content
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Button(onClick = { /* Handle camera action */ }) {
+                        Button(onClick = {
+                            // TODO: handle crash???
+                            launchCamera(context, imageUri)
+                        }) {
                             Text("Camera")
                         }
                         Button(onClick = {
