@@ -1,9 +1,6 @@
 package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,10 +28,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,11 +46,14 @@ import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
+import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -76,14 +78,23 @@ fun CreateJournalEntryScreen(
         mutableStateOf(currentDate)
     }
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            photoUri = uri
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+
+    var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+    fun showBottomSheet() {
+        coroutineScope.launch {
+            sheetState.show()
+            isBottomSheetVisible = true
         }
     }
 
-    fun onUploadImageClick()  {
-        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    fun hideBottomSheet() {
+        coroutineScope.launch {
+            sheetState.hide()
+            isBottomSheetVisible = false
+        }
     }
 
     fun onSubmitClick() {
@@ -103,7 +114,7 @@ fun CreateJournalEntryScreen(
         journalEntryViewModel.addJournalEntry(journalEntry)
     }
 
-    if(showLocationPicker) {
+    if (showLocationPicker) {
         LocationPicker(
             onDismiss = {
                 showLocationPicker = false
@@ -145,13 +156,13 @@ fun CreateJournalEntryScreen(
         },
         bottomBar = {
             Surface {
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 ) {
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            onUploadImageClick()
+                            showBottomSheet()
                         }
                     ) {
                         Text(text = "Media")
@@ -169,7 +180,10 @@ fun CreateJournalEntryScreen(
                     ) {
                         Text(text = "Geotag")
                         Spacer(Modifier.padding(horizontal = 4.dp))
-                        Icon(Icons.Filled.PersonPinCircle, contentDescription = "Add journal entry geotag")
+                        Icon(
+                            Icons.Filled.PersonPinCircle,
+                            contentDescription = "Add journal entry geotag"
+                        )
                     }
                 }
             }
@@ -180,10 +194,9 @@ fun CreateJournalEntryScreen(
                 Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ,
+                    .verticalScroll(rememberScrollState()),
         ) {
-            if(photoUri != null){
+            if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
                     modifier = Modifier.fillMaxWidth().height(250.dp),
@@ -192,25 +205,24 @@ fun CreateJournalEntryScreen(
                 )
             }
 
-            if(showDatePicker){
+            if (showDatePicker) {
                 DatePickerModal(
                     onDismiss = {
                         showDatePicker = false
                     },
-                    onDateSelected = {
-                        selectedTimestamp ->
-                            if (selectedTimestamp != null) {
-                                entryDate = LocalDateTime.ofInstant(
-                                    Instant.ofEpochMilli(selectedTimestamp),
-                                    ZoneId.systemDefault()
-                                )
-                            }
+                    onDateSelected = { selectedTimestamp ->
+                        if (selectedTimestamp != null) {
+                            entryDate = LocalDateTime.ofInstant(
+                                Instant.ofEpochMilli(selectedTimestamp),
+                                ZoneId.systemDefault()
+                            )
+                        }
                     },
                     dataInSeconds = entryDate.toLocalMilliseconds()
                 )
             }
 
-            if(latitude != null && longitude != null){
+            if (latitude != null && longitude != null) {
                 Row(
                     modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -222,7 +234,7 @@ fun CreateJournalEntryScreen(
                             useDeprecated = true,
                             lat = latitude!!,
                             lon = longitude!!,
-                            context =  LocalContext.current
+                            context = LocalContext.current
                         )?.let {
                             Text(
                                 text = it.getAddressLine(0),
@@ -272,6 +284,23 @@ fun CreateJournalEntryScreen(
                         Text("Description")
                     }
                 )
+            }
+            if (sheetState.isVisible) {
+                UJournalBottomSheet(
+                    sheetState = sheetState,
+                    onDismiss = { hideBottomSheet() }
+                ) {
+                    MediaActions(
+                        onSuccessTakePicture = {
+                            photoUri = it
+                            hideBottomSheet()
+                        },
+                        onSuccessChooseFromGallery = {
+                            photoUri = it
+                            hideBottomSheet()
+                        }
+                    )
+                }
             }
         }
     }
