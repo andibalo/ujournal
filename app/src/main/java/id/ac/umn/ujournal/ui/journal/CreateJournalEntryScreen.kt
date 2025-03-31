@@ -26,15 +26,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +55,7 @@ import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -82,8 +86,23 @@ fun CreateJournalEntryScreen(
         }
     }
 
-    fun onUploadImageClick()  {
-        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+
+//    fun onUploadImageClick()  {
+//
+//    }
+
+    fun showBottomSheet() {
+        coroutineScope.launch {
+            sheetState.show()
+        }
+    }
+
+    fun hideBottomSheet() {
+        coroutineScope.launch {
+            sheetState.hide()
+        }
     }
 
     fun onSubmitClick() {
@@ -151,7 +170,7 @@ fun CreateJournalEntryScreen(
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            onUploadImageClick()
+                            showBottomSheet()
                         }
                     ) {
                         Text(text = "Media")
@@ -272,6 +291,19 @@ fun CreateJournalEntryScreen(
                         Text("Description")
                     }
                 )
+            }
+
+            ModalBottomSheet(
+                sheetState = sheetState,
+                onDismissRequest = { hideBottomSheet() }
+            ) {
+                // Bottom sheet content
+                Button(onClick = { /* Handle action */ }) {
+                    Text("Camera")
+                }
+                Button(onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                    Text("Gallery")
+                }
             }
         }
     }
