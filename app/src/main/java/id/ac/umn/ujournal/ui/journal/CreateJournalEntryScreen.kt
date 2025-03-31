@@ -50,6 +50,7 @@ import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
+import id.ac.umn.ujournal.ui.components.common.ReusableBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
@@ -80,28 +81,29 @@ fun CreateJournalEntryScreen(
         mutableStateOf(currentDate)
     }
 
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            photoUri = uri
+    val imagePicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                photoUri = uri
+            }
         }
-    }
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
 
-//    fun onUploadImageClick()  {
-//
-//    }
+    var isBottomSheetVisible by remember { mutableStateOf(false) }
 
     fun showBottomSheet() {
         coroutineScope.launch {
             sheetState.show()
+            isBottomSheetVisible = true
         }
     }
 
     fun hideBottomSheet() {
         coroutineScope.launch {
             sheetState.hide()
+            isBottomSheetVisible = false
         }
     }
 
@@ -122,7 +124,7 @@ fun CreateJournalEntryScreen(
         journalEntryViewModel.addJournalEntry(journalEntry)
     }
 
-    if(showLocationPicker) {
+    if (showLocationPicker) {
         LocationPicker(
             onDismiss = {
                 showLocationPicker = false
@@ -164,7 +166,7 @@ fun CreateJournalEntryScreen(
         },
         bottomBar = {
             Surface {
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 ) {
                     Button(
@@ -188,7 +190,10 @@ fun CreateJournalEntryScreen(
                     ) {
                         Text(text = "Geotag")
                         Spacer(Modifier.padding(horizontal = 4.dp))
-                        Icon(Icons.Filled.PersonPinCircle, contentDescription = "Add journal entry geotag")
+                        Icon(
+                            Icons.Filled.PersonPinCircle,
+                            contentDescription = "Add journal entry geotag"
+                        )
                     }
                 }
             }
@@ -199,10 +204,9 @@ fun CreateJournalEntryScreen(
                 Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ,
+                    .verticalScroll(rememberScrollState()),
         ) {
-            if(photoUri != null){
+            if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
                     modifier = Modifier.fillMaxWidth().height(250.dp),
@@ -211,25 +215,24 @@ fun CreateJournalEntryScreen(
                 )
             }
 
-            if(showDatePicker){
+            if (showDatePicker) {
                 DatePickerModal(
                     onDismiss = {
                         showDatePicker = false
                     },
-                    onDateSelected = {
-                        selectedTimestamp ->
-                            if (selectedTimestamp != null) {
-                                entryDate = LocalDateTime.ofInstant(
-                                    Instant.ofEpochMilli(selectedTimestamp),
-                                    ZoneId.systemDefault()
-                                )
-                            }
+                    onDateSelected = { selectedTimestamp ->
+                        if (selectedTimestamp != null) {
+                            entryDate = LocalDateTime.ofInstant(
+                                Instant.ofEpochMilli(selectedTimestamp),
+                                ZoneId.systemDefault()
+                            )
+                        }
                     },
                     dataInSeconds = entryDate.toLocalMilliseconds()
                 )
             }
 
-            if(latitude != null && longitude != null){
+            if (latitude != null && longitude != null) {
                 Row(
                     modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -241,7 +244,7 @@ fun CreateJournalEntryScreen(
                             useDeprecated = true,
                             lat = latitude!!,
                             lon = longitude!!,
-                            context =  LocalContext.current
+                            context = LocalContext.current
                         )?.let {
                             Text(
                                 text = it.getAddressLine(0),
@@ -292,17 +295,26 @@ fun CreateJournalEntryScreen(
                     }
                 )
             }
-
-            ModalBottomSheet(
-                sheetState = sheetState,
-                onDismissRequest = { hideBottomSheet() }
-            ) {
-                // Bottom sheet content
-                Button(onClick = { /* Handle action */ }) {
-                    Text("Camera")
-                }
-                Button(onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
-                    Text("Gallery")
+            if (sheetState.isVisible) {
+                ReusableBottomSheet(
+                    sheetState = sheetState,
+                    onDismiss = { hideBottomSheet() }
+                ) {
+                    // Bottom sheet content
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Button(onClick = { /* Handle camera action */ }) {
+                            Text("Camera")
+                        }
+                        Button(onClick = {
+                            imagePicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        }) {
+                            Text("Gallery")
+                        }
+                    }
                 }
             }
         }
