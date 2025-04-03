@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.auth
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,8 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
@@ -84,6 +87,12 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(horizontal = 30.dp)
             ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_blue),
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
+                    contentDescription = "App Logo"
+                )
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "U-Journal",
                     style = MaterialTheme.typography.headlineLarge
