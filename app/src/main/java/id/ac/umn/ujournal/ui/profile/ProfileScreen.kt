@@ -48,8 +48,7 @@ fun ProfileScreen(
     navigateToLoginScreen : () -> Unit = {}
 ) {
     val userState by userViewModel.userState.collectAsState()
-//    val user = (userState as UserState.Success).user
-    val user = (userState as? UserState.Success)?.user // temp for preview
+    val user = (userState as UserState.Success).user
 
     fun onLogoutClick() {
         userViewModel.logout()
@@ -85,7 +84,7 @@ fun ProfileScreen(
                     modifier = Modifier.padding(30.dp)
                 ) {
                     Image(
-                        // TODO: onclick change pfp
+//                        TODO: onClick change pfp
                         painter = painterResource(id = R.drawable.default_profile_picture),
                         contentDescription = " Profile Picture",
                         modifier = Modifier
@@ -112,7 +111,7 @@ fun ProfileScreen(
                             contentDescription = "Name"
                         )
                         Text(
-                            text = "John Doe",
+                            text = user.firstName + " " + user.lastName,
                             fontSize = 18.sp
                         )
                     }
@@ -128,7 +127,7 @@ fun ProfileScreen(
                             contentDescription = "Name"
                         )
                         Text(
-                            text = "john@email.com",
+                            text = user.email,
                             fontSize = 18.sp
                         )
                     }
@@ -167,6 +166,7 @@ fun ProfileScreen(
                         )
                     }
                     Column(
+                        modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
