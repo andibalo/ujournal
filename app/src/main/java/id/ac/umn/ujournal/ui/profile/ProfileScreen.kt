@@ -74,87 +74,114 @@ fun ProfileScreen(
                 .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-//            verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.secondary), contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.default_profile_picture),
-                    contentDescription = " Profile Picture",
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clip(CircleShape)
-                )
+                Box(
+                    modifier = Modifier.padding(30.dp)
+                ) {
+                    Image(
+                        // TODO: onclick change pfp
+                        painter = painterResource(id = R.drawable.default_profile_picture),
+                        contentDescription = " Profile Picture",
+                        modifier = Modifier
+                            .clip(CircleShape)
+                    )
+                }
             }
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.padding(20.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
-                    Icon(
-                        Icons.Filled.Badge,
-                        contentDescription = "Name"
-                    )
-                    Text(
-                        text = "John Doe",
-                        fontSize = 18.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Mail,
-                        contentDescription = "Name"
-                    )
-                    Text(
-                        text = "john@email.com",
-                        fontSize = 18.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row() {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(45.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
-                            Icons.Filled.DarkMode,
-                            contentDescription = "Dark Mode Toggle"
+                            Icons.Filled.Badge,
+                            contentDescription = "Name"
                         )
                         Text(
-                            text = "Dark Mode",
+                            text = "John Doe",
                             fontSize = 18.sp
                         )
                     }
-                    Switch(
-                        checked = false,
-                        onCheckedChange = {
-                            // TODO: Dark mode
-                        }
-                    )
-                }
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
-            Column() {
-                Button(
-                    onClick = {
-                        onLogoutClick()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(45.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Mail,
+                            contentDescription = "Name"
+                        )
+                        Text(
+                            text = "john@email.com",
+                            fontSize = 18.sp
+                        )
                     }
-                ) {
-                    Text(text = "Logout")
                 }
-                Text(
-                    text = "Kelompok 3"
-                    // color
+                HorizontalDivider(
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.secondary
                 )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(45.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.DarkMode,
+                                contentDescription = "Dark Mode Toggle"
+                            )
+                            Text(
+                                text = "Dark Mode",
+                                fontSize = 18.sp
+                            )
+                        }
+                        Switch(
+                            checked = false,
+                            onCheckedChange = {
+                                // TODO: Dark mode
+                            }
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = {
+                                onLogoutClick()
+                            }
+                        ) {
+                            Text(text = "Logout")
+                        }
+                        Text(
+                            text = "Kelompok 3",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
             }
         }
     }
