@@ -24,6 +24,8 @@ fun OutlinedPasswordTextField(
     value: String,
     label: String = "Password",
     placeholder: String = "",
+    supportingText: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
     onPasswordChange: (String) -> Unit
 ) {
         var passwordVisibility by remember { mutableStateOf(false) }
@@ -39,6 +41,8 @@ fun OutlinedPasswordTextField(
             onValueChange = onPasswordChange,
             placeholder = { Text(text = placeholder) },
             label = { Text(text = label) },
+            isError = isError,
+            supportingText = supportingText,
             trailingIcon = {
                 IconButton(onClick = {
                     passwordVisibility = !passwordVisibility

@@ -36,8 +36,23 @@ import id.ac.umn.ujournal.model.User
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.constant.EMAIL_REGEX
+import id.ac.umn.ujournal.ui.constant.EMAIL_VALIDATION_HINT
+import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import io.konform.validation.Validation
+import io.konform.validation.constraints.notBlank
+import io.konform.validation.constraints.pattern
+import io.konform.validation.messagesAtPath
 import java.util.UUID
+
+data class RegisterInput(
+    var firstName: String = "",
+    var lastName: String = "",
+    var email: String = "",
+    var password: String = "",
+    var confirmPassword: String = "",
+)
 
 @Composable
 fun RegisterScreen(
@@ -47,14 +62,76 @@ fun RegisterScreen(
     snackbarHostState: SnackbarHostState
 ) {
     var firstNameInput by remember { mutableStateOf("") }
+    var firstNameInputErrMsg by remember { mutableStateOf("") }
     var lastNameInput by remember { mutableStateOf("") }
+    var lastNameInputErrMsg by remember { mutableStateOf("") }
     var emailInput by remember { mutableStateOf("") }
+    var emailInputErrMsg by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
+    var passwordInputErrMsg by remember { mutableStateOf("") }
     var confirmPasswordInput by remember { mutableStateOf("") }
+    var confirmPasswordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
 
+    val validateRegisterInput = Validation {
+        RegisterInput::firstName {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+        }
+
+        RegisterInput::lastName {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+        }
+
+        RegisterInput::email {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+            pattern(EMAIL_REGEX) hint EMAIL_VALIDATION_HINT
+        }
+
+        RegisterInput::password  {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+        }
+
+        RegisterInput::confirmPassword  {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+        }
+    }
+
     fun onRegisterClick() {
-        // TODO: add validation
+        val validationResult = validateRegisterInput(
+            RegisterInput(
+                firstNameInput, lastNameInput, emailInput, passwordInput
+            )
+        )
+
+        if(!validationResult.isValid) {
+            val validationErrors = validationResult.errors
+
+            if (validationErrors.messagesAtPath(RegisterInput::firstName).isNotEmpty()) {
+                firstNameInputErrMsg = validationErrors.messagesAtPath(RegisterInput::firstName).first()
+            }
+
+            if (validationErrors.messagesAtPath(RegisterInput::lastName).isNotEmpty()) {
+                lastNameInputErrMsg = validationErrors.messagesAtPath(RegisterInput::lastName).first()
+            }
+
+            if (validationErrors.messagesAtPath(RegisterInput::email).isNotEmpty()) {
+                emailInputErrMsg = validationErrors.messagesAtPath(RegisterInput::email).first()
+            }
+
+            if (validationErrors.messagesAtPath(RegisterInput::password).isNotEmpty()) {
+                passwordInputErrMsg = validationErrors.messagesAtPath(RegisterInput::password).first()
+            }
+
+            if (validationErrors.messagesAtPath(RegisterInput::confirmPassword).isNotEmpty()) {
+                confirmPasswordInputErrMsg = validationErrors.messagesAtPath(RegisterInput::confirmPassword).first()
+            }
+
+            if(confirmPasswordInput != passwordInput){
+                confirmPasswordInputErrMsg = "Password does not match"
+            }
+
+            return
+        }
 
         try {
             userViewModel.register(User(
@@ -78,6 +155,7 @@ fun RegisterScreen(
             )
         }
     }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -108,33 +186,89 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = firstNameInput,
-                    onValueChange = { firstNameInput = it },
+                    onValueChange = {
+                        if(firstNameInputErrMsg.isNotBlank()){
+                            firstNameInputErrMsg = ""
+                        }
+
+                        firstNameInput = it
+                    },
                     label = { Text("First Name") },
                     modifier = Modifier.fillMaxWidth(),
+                    isError = firstNameInputErrMsg.isNotBlank(),
+                    supportingText =  if (firstNameInputErrMsg.isNotBlank()) {
+                        { Text(text = firstNameInputErrMsg) }
+                    } else {
+                        null
+                    }
                 )
                 OutlinedTextField(
                     value = lastNameInput,
-                    onValueChange = { lastNameInput = it },
+                    onValueChange = {
+                        if(lastNameInputErrMsg.isNotBlank()){
+                            lastNameInputErrMsg = ""
+                        }
+
+                        lastNameInput = it
+                    },
                     label = { Text("Last Name") },
                     modifier = Modifier.fillMaxWidth(),
+                    isError = lastNameInputErrMsg.isNotBlank(),
+                    supportingText =  if (lastNameInputErrMsg.isNotBlank()) {
+                        { Text(text = lastNameInputErrMsg) }
+                    } else {
+                        null
+                    }
                 )
                 OutlinedTextField(
                     value = emailInput,
-                    onValueChange = { emailInput = it },
+                    onValueChange = {
+                        if(emailInputErrMsg.isNotBlank()){
+                            emailInputErrMsg = ""
+                        }
+
+                        emailInput = it
+                    },
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
+                    isError = emailInputErrMsg.isNotBlank(),
+                    supportingText =  if (emailInputErrMsg.isNotBlank()) {
+                        { Text(text = emailInputErrMsg) }
+                    } else {
+                        null
+                    }
                 )
                 OutlinedPasswordTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = passwordInput,
+                    isError = passwordInputErrMsg.isNotBlank(),
+                    supportingText =  if (passwordInputErrMsg.isNotBlank()) {
+                        { Text(text = passwordInputErrMsg) }
+                    } else {
+                        null
+                    }
                 ) {
+                    if(passwordInputErrMsg.isNotBlank()){
+                        passwordInputErrMsg = ""
+                    }
+
                     passwordInput = it
                 }
                 OutlinedPasswordTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = confirmPasswordInput,
                     label = "Confirm Password",
+                    isError = confirmPasswordInputErrMsg.isNotBlank(),
+                    supportingText =  if (confirmPasswordInputErrMsg.isNotBlank()) {
+                        { Text(text = confirmPasswordInputErrMsg) }
+                    } else {
+                        null
+                    }
                 ) {
+                    if(confirmPasswordInputErrMsg.isNotBlank()){
+                        confirmPasswordInputErrMsg = ""
+                    }
+
                     confirmPasswordInput = it
                 }
                 Spacer(modifier = Modifier.height(8.dp))

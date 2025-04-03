@@ -37,7 +37,19 @@ import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import id.ac.umn.ujournal.ui.constant.EMAIL_REGEX
+import id.ac.umn.ujournal.ui.constant.EMAIL_VALIDATION_HINT
+import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import io.konform.validation.Validation
+import io.konform.validation.constraints.notBlank
+import io.konform.validation.constraints.pattern
+import io.konform.validation.messagesAtPath
+
+data class LoginInput(
+    var email: String = "",
+    var password: String = ""
+)
 
 @Composable
 fun LoginScreen(
@@ -47,11 +59,38 @@ fun LoginScreen(
     snackbarHostState: SnackbarHostState
 ) {
     var emailInput by remember { mutableStateOf("") }
+    var emailInputErrMsg by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
+    var passwordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
 
+    val validateLoginInput = Validation {
+        LoginInput::email {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+            pattern(EMAIL_REGEX) hint EMAIL_VALIDATION_HINT
+        }
+
+        LoginInput::password  {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+        }
+    }
+
     fun onLoginClick() {
-        // TODO: add validation
+        val validationResult = validateLoginInput(LoginInput(emailInput, passwordInput))
+
+        if(!validationResult.isValid) {
+            val validationErrors = validationResult.errors
+
+            if (validationErrors.messagesAtPath(LoginInput::email).isNotEmpty()) {
+                emailInputErrMsg = validationErrors.messagesAtPath(LoginInput::email).first()
+            }
+
+            if (validationErrors.messagesAtPath(LoginInput::password).isNotEmpty()) {
+                passwordInputErrMsg = validationErrors.messagesAtPath(LoginInput::password).first()
+            }
+
+            return
+        }
 
         try {
             userViewModel.login(email = emailInput, password = passwordInput)
@@ -104,14 +143,36 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = emailInput,
-                    onValueChange = { emailInput = it },
+                    onValueChange = {
+                        if(emailInputErrMsg.isNotBlank()){
+                            emailInputErrMsg = ""
+                        }
+
+                        emailInput = it
+                    },
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
+                    isError = emailInputErrMsg.isNotBlank(),
+                    supportingText =  if (emailInputErrMsg.isNotBlank()) {
+                        { Text(text = emailInputErrMsg) }
+                    } else {
+                        null
+                    }
                 )
                 OutlinedPasswordTextField(
                     modifier = Modifier.fillMaxWidth(),
                     value = passwordInput,
+                    isError = passwordInputErrMsg.isNotBlank(),
+                    supportingText =  if (passwordInputErrMsg.isNotBlank()) {
+                        { Text(text = passwordInputErrMsg) }
+                    } else {
+                        null
+                    }
                 ) {
+                    if(passwordInputErrMsg.isNotBlank()){
+                        passwordInputErrMsg = ""
+                    }
+
                     passwordInput = it
                 }
                 Spacer(modifier = Modifier.height(8.dp))
