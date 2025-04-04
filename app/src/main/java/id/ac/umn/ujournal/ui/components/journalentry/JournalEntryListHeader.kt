@@ -26,7 +26,7 @@ fun JournalEntryListHeader(
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.scrim
+            color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = onToggleSort) {
             Row {

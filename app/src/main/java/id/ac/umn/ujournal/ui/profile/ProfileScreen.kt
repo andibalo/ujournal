@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -36,18 +35,21 @@ import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.viewmodel.ThemeMode
+import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    themeViewModel: ThemeViewModel,
     userViewModel: UserViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
     navigateToLoginScreen : () -> Unit = {}
 ) {
+    val themeState by themeViewModel.themeMode.collectAsState()
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
 
@@ -185,9 +187,9 @@ fun ProfileScreen(
                             )
                         }
                         Switch(
-                            checked = false,
+                            checked = themeState == ThemeMode.DARK,
                             onCheckedChange = {
-                                // TODO: Dark mode
+                                themeViewModel.toggleTheme()
                             }
                         )
                     }

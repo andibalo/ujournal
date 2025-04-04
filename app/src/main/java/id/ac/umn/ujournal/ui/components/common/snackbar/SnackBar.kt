@@ -37,7 +37,7 @@ fun UJournalSnackBar(
     actionOnNewLine: Boolean = false,
     shape: Shape = SnackbarDefaults.shape,
     containerColor: Color = MaterialTheme.extendedColor.success.colorContainer,
-    contentColor: Color = MaterialTheme.colorScheme.scrim,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     actionColor: Color = SnackbarDefaults.actionColor,
     actionContentColor: Color = SnackbarDefaults.actionContentColor,
     dismissActionContentColor: Color = SnackbarDefaults.dismissActionContentColor,

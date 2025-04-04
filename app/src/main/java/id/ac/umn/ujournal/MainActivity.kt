@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.common.BottomNavigationBar
@@ -30,21 +31,25 @@ import id.ac.umn.ujournal.ui.navigation.Register
 import id.ac.umn.ujournal.ui.navigation.UJournalNavHost
 import id.ac.umn.ujournal.ui.navigation.uJournalAppScreens
 import id.ac.umn.ujournal.ui.theme.UJournalTheme
+import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            UJournalTheme {
-                UJournalApp()
+            val themeViewModel: ThemeViewModel = viewModel()
+            UJournalTheme(
+                themeViewModel = themeViewModel
+            ) {
+                UJournalApp(themeViewModel = themeViewModel)
             }
         }
     }
 }
 
 @Composable
-fun UJournalApp() {
+fun UJournalApp(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
 
     val bottomBarState = rememberSaveable { (mutableStateOf(true)) }
@@ -76,7 +81,8 @@ fun UJournalApp() {
     ) { innerPadding: PaddingValues ->
         UJournalNavHost(
             navController = navController,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            themeViewModel = themeViewModel
         )
     }
 }
@@ -145,9 +151,9 @@ fun shouldShowTopAppBar(route : String) : Boolean {
 )
 @Composable
 fun UJournalAppPreviewDark() {
-    UJournalTheme {
-        UJournalApp()
-    }
+//    UJournalTheme {
+//        UJournalApp()
+//    }
 }
 
 @Preview(
@@ -156,7 +162,7 @@ fun UJournalAppPreviewDark() {
 )
 @Composable
 fun UJournalAppPreviewLight() {
-    UJournalTheme {
-        UJournalApp()
-    }
+//    UJournalTheme {
+//        UJournalApp()
+//    }
 }

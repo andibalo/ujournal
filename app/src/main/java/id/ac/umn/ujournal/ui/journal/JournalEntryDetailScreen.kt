@@ -163,7 +163,7 @@ fun JournalEntryDetailScreen(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text(
                         "No",
-                        color = MaterialTheme.colorScheme.scrim
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

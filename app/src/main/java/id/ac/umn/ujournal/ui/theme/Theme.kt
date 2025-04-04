@@ -1,7 +1,6 @@
 package id.ac.umn.ujournal.ui.theme
 
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
@@ -10,9 +9,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import id.ac.umn.ujournal.viewmodel.ThemeMode
+import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 
 @Immutable
 data class ExtendedColorScheme(
@@ -360,22 +362,30 @@ val MaterialTheme.extendedColor: ExtendedColorScheme
 
 @Composable
 fun UJournalTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeViewModel: ThemeViewModel,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+
+    val theme = themeViewModel.themeMode.collectAsState()
+
+    val isDarkMode = when (theme.value) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (isDarkMode) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> darkScheme
+        isDarkMode -> darkScheme
         else -> lightScheme
     }
 
-    val extendedColorScheme = if (darkTheme) extendedDark else extendedLight
+    val extendedColorScheme = if (isDarkMode) extendedDark else extendedLight
 
     // Provide the custom extended color scheme to the composition
     CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {

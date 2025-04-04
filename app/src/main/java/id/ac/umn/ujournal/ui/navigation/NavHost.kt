@@ -19,12 +19,14 @@ import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
 import id.ac.umn.ujournal.ui.profile.ProfileScreen
+import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 @Composable
 fun UJournalNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    themeViewModel: ThemeViewModel
 ) {
     val journalEntryViewModel: JournalEntryViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
@@ -108,6 +110,7 @@ fun UJournalNavHost(
             }
             composable(route = Profile.route) {
                 ProfileScreen(
+                    themeViewModel = themeViewModel,
                     userViewModel = userViewModel,
                     onBackButtonClick = {
                         if (navController.previousBackStackEntry != null) {
