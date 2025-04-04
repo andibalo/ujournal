@@ -2,8 +2,6 @@ package id.ac.umn.ujournal.ui.map
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,12 +28,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.ErrorScreen
 import id.ac.umn.ujournal.ui.components.common.LoadingScreen
+import id.ac.umn.ujournal.ui.components.common.NonLazyGrid
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaScreen(
     userViewModel: UserViewModel = viewModel(),
@@ -100,36 +99,23 @@ fun MediaScreen(
                     }
 
                     item {
-                        FlowRow(
+                        NonLazyGrid(
+                            columns = 3,
+                            itemCount = journalEntries.size,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            maxItemsInEachRow = 3
+                                .padding(start = 7.5.dp, end = 7.5.dp)
                         ) {
-                            val remainder = journalEntries.size % 3
-                            val placeholdersNeeded = if (remainder != 0) 3 - remainder else 0
-
-                            for (journalEntry in journalEntries) {
                                 AsyncImage(
-                                    model = journalEntry.imageURI,
+                                    model = journalEntries[it].imageURI,
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(100.dp)
                                         .clickable {
-                                            onMediaItemClick(journalEntry.id.toString())
+                                            onMediaItemClick(journalEntries[it].id.toString())
                                         },
                                     contentDescription = "Journal Entry Photo",
                                     contentScale = ContentScale.Crop
                                 )
-                            }
-
-                            repeat(placeholdersNeeded){
-                                Spacer(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(100.dp)
-                                )
-                            }
                         }
                         Spacer(
                             modifier = Modifier.padding(8.dp).fillMaxWidth()
