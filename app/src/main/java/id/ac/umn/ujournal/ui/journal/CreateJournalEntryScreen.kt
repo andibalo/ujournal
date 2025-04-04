@@ -46,15 +46,25 @@ import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.CreateJournalEntryBottomTab
+import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
+import io.konform.validation.Validation
+import io.konform.validation.constraints.maxLength
+import io.konform.validation.constraints.notBlank
+import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
+
+data class CreateJournalInput(
+    var entryTitle: String = "",
+    var entryBody: String = ""
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +75,9 @@ fun CreateJournalEntryScreen(
     var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
+    var entryTitleInputErrMsg by remember { mutableStateOf("") }
     var entryBody by rememberSaveable { mutableStateOf("") }
+    var entryBodyInputErrMsg by remember { mutableStateOf("") }
     var showLocationPicker by remember { mutableStateOf(false) }
     var latitude: Double? by rememberSaveable { mutableStateOf(null) }
     var longitude: Double? by rememberSaveable { mutableStateOf(null) }
@@ -79,6 +91,18 @@ fun CreateJournalEntryScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+    val validateCreateJournalInput = Validation {
+        CreateJournalInput::entryTitle {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+            maxLength(100)
+        }
+
+        CreateJournalInput::entryBody  {
+            notBlank() hint NOT_BLANK_VALIDATION_HINT
+            maxLength(255)
+        }
+    }
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -95,7 +119,21 @@ fun CreateJournalEntryScreen(
     }
 
     fun onSubmitClick() {
-        // TODO: add validation
+        val validationResult = validateCreateJournalInput(CreateJournalInput(entryTitle, entryBody))
+
+        if(!validationResult.isValid) {
+            val validationErrors = validationResult.errors
+
+            if (validationErrors.messagesAtPath(CreateJournalInput::entryTitle).isNotEmpty()) {
+                entryTitleInputErrMsg = validationErrors.messagesAtPath(CreateJournalInput::entryTitle).first()
+            }
+
+            if (validationErrors.messagesAtPath(CreateJournalInput::entryBody).isNotEmpty()) {
+                entryBodyInputErrMsg = validationErrors.messagesAtPath(CreateJournalInput::entryBody).first()
+            }
+
+            return
+        }
 
         val journalEntry = JournalEntry(
             id = UUID.randomUUID(),
@@ -109,6 +147,8 @@ fun CreateJournalEntryScreen(
         )
 
         journalEntryViewModel.addJournalEntry(journalEntry)
+
+        onBackButtonClick()
     }
 
     if (showLocationPicker) {
@@ -139,7 +179,6 @@ fun CreateJournalEntryScreen(
                     IconButton(
                         onClick = {
                             onSubmitClick()
-                            onBackButtonClick()
                         }
                     ) {
                         Icon(
@@ -243,22 +282,46 @@ fun CreateJournalEntryScreen(
                 modifier = Modifier.padding(10.dp)
             ) {
                 TextField(
-                    value = entryTitle,
-                    onValueChange = { entryTitle = it }, modifier = Modifier
+                    modifier = Modifier
                         .fillMaxWidth(),
+                    value = entryTitle,
+                    onValueChange = {
+                        if(entryTitleInputErrMsg.isNotBlank()){
+                            entryTitleInputErrMsg = ""
+                        }
+                        entryTitle = it
+                    },
                     label = {
                         Text("Title")
+                    },
+                    isError = entryTitleInputErrMsg.isNotBlank(),
+                    supportingText =  if (entryTitleInputErrMsg.isNotBlank()) {
+                        { Text(text = entryTitleInputErrMsg) }
+                    } else {
+                        null
                     }
                 )
                 Spacer(Modifier.padding(vertical = 8.dp))
                 TextField(
-                    value = entryBody,
-                    onValueChange = { entryBody = it }, modifier = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(250.dp)
                         .verticalScroll(rememberScrollState()),
+                    value = entryBody,
+                    onValueChange = {
+                        if(entryBodyInputErrMsg.isNotBlank()){
+                            entryBodyInputErrMsg = ""
+                        }
+                        entryBody = it
+                    },
                     label = {
                         Text("Description")
+                    },
+                    isError = entryBodyInputErrMsg.isNotBlank(),
+                    supportingText =  if (entryBodyInputErrMsg.isNotBlank()) {
+                        { Text(text = entryBodyInputErrMsg) }
+                    } else {
+                        null
                     }
                 )
             }
