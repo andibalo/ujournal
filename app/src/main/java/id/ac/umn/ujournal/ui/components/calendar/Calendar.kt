@@ -78,6 +78,7 @@ fun Calendar(
             )
 
             VerticalCalendar(
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                 state = state,
                 contentPadding = PaddingValues(bottom = 100.dp),
                 dayContent = { value ->
@@ -162,6 +163,7 @@ private fun MonthHeader(calendarMonth: CalendarMonth) {
             text = calendarMonth.yearMonth.displayText(),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
