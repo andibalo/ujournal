@@ -4,9 +4,9 @@ import java.util.UUID
 
 data class User(
     val id: UUID,
-    val firstName: String,
-    val lastName: String,
+    var firstName: String,
+    var lastName: String,
     val email: String,
-    val profileImageURL: String?,
-    val password: String  // TODO: Remove after integration to backend
+    var profileImageURL: String?,
+    var password: String  // TODO: Remove after integration to backend
 )

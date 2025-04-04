@@ -1,6 +1,5 @@
 package id.ac.umn.ujournal.ui.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,11 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.DarkMode
@@ -32,18 +27,11 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.Uri
 import coil3.compose.AsyncImage
-import coil3.toCoilUri
 import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
@@ -65,7 +53,6 @@ fun ProfileScreen(
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
-    var photoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -108,26 +95,22 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary,
-                            )
-                        )
+                       MaterialTheme.colorScheme.primary
                     ), contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier.padding(30.dp)
                 ) {
                     AsyncImage(
-                        model = photoUri ?: R.drawable.default_profile_picture,
+                        model = user.profileImageURL ?: R.drawable.default_profile_picture,
                         contentDescription = "Profile Picture",
                         modifier = Modifier
                             .clip(CircleShape)
                             .size(120.dp)
                             .clickable {
                                 showBottomSheet()
-                            }
+                            },
+                        contentScale = ContentScale.Crop
                     )
 
                 }
@@ -141,8 +124,7 @@ fun ProfileScreen(
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(45.dp),
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -157,10 +139,10 @@ fun ProfileScreen(
                             fontWeight = FontWeight.W400
                         )
                     }
+                    Spacer(Modifier.padding(10.dp))
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(45.dp),
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -177,7 +159,7 @@ fun ProfileScreen(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(vertical = 16.dp),
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Column(
@@ -185,8 +167,7 @@ fun ProfileScreen(
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(45.dp),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -200,7 +181,7 @@ fun ProfileScreen(
                             )
                             Text(
                                 text = "Dark Mode",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                         }
                         Switch(
@@ -211,11 +192,11 @@ fun ProfileScreen(
                         )
                     }
                     Column(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding( vertical = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
-                            shape = RoundedCornerShape(5.dp),
+                            shape = MaterialTheme.shapes.small,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 onLogoutClick()
@@ -225,8 +206,9 @@ fun ProfileScreen(
                                 text = "Logout"
                             )
                         }
+                        Spacer(Modifier.padding(8.dp))
                         Text(
-                            text = "Kelompok 3",
+                            text = "GoonPlatoon (Kelompok 3)",
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -242,11 +224,15 @@ fun ProfileScreen(
             ) {
                 MediaActions(
                     onSuccessTakePicture = { uri ->
-                        photoUri = uri.toCoilUri()
+                        user.profileImageURL = uri.toString()
+                        userViewModel.updateUserData(user)
+
                         hideBottomSheet()
                     },
                     onSuccessChooseFromGallery = { uri ->
-                        photoUri = uri?.toCoilUri()
+                        user.profileImageURL = uri.toString()
+                        userViewModel.updateUserData(user)
+
                         hideBottomSheet()
                     }
                 )
