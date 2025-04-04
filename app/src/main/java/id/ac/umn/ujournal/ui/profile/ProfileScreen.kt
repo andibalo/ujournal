@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.profile
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,21 +17,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +50,21 @@ fun ProfileScreen(
 ) {
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
+
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+
+    fun showBottomSheet() {
+        coroutineScope.launch {
+            sheetState.show()
+        }
+    }
+
+    fun hideBottomSheet() {
+        coroutineScope.launch {
+            sheetState.hide()
+        }
+    }
 
     fun onLogoutClick() {
         userViewModel.logout()
@@ -66,71 +87,156 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .padding(top = innerPadding.calculateTopPadding())
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterVertically)
+                .fillMaxSize()
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
+            Box(
                 modifier = Modifier
-                    .size(width = 300.dp, height = 450.dp)
+                    .fillMaxWidth()
+                    .background(
+                       MaterialTheme.colorScheme.primary
+                    ), contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier.padding(30.dp)
+                ) {
+                    AsyncImage(
+                        model = user.profileImageURL ?: R.drawable.default_profile_picture,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(120.dp)
+                            .clickable {
+                                showBottomSheet()
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+
+                }
+            }
+            Column(
+                modifier = Modifier.padding(20.dp)
             ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.SpaceBetween
+                        .fillMaxWidth()
                 ) {
-                    Column (
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
                             .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box {
-                            // TODO : icon for changing profile picture (?)
-//                            Icon(
-//                                imageVector = Icons.Filled.Edit,
-//                                contentDescription = "Edit",
-//                            )
-                            Image(
-                                painter = painterResource(id = R.drawable.default_profile_picture),
-                                contentDescription = " Profile Picture",
-                                modifier = Modifier
-                                .size(150.dp)
-                                .clip(CircleShape)
-                            )
-                        }
+                        Icon(
+                            Icons.Filled.Badge,
+                            contentDescription = "Name",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                         Text(
                             text = user.firstName + " " + user.lastName,
-                            textAlign = TextAlign.Center,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.W400
                         )
                     }
-                    Column (
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    Spacer(Modifier.padding(10.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
+                        Icon(
+                            Icons.Filled.Mail,
+                            contentDescription = "Email",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                         Text(
-                            text = "Kelompok 3",
-                            textAlign = TextAlign.Center,
+                            text = user.email,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.W400
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.DarkMode,
+                                contentDescription = "Dark Mode Toggle",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Dark Mode",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                        Switch(
+                            checked = false,
+                            onCheckedChange = {
+                                // TODO: Dark mode
+                            }
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.padding( vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                onLogoutClick()
+                            }
+                        ) {
+                            Text(
+                                text = "Logout"
+                            )
+                        }
+                        Spacer(Modifier.padding(8.dp))
+                        Text(
+                            text = "GoonPlatoon (Kelompok 3)",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
             }
-          Button(
-            onClick = {
-                onLogoutClick()
+        }
+
+        if (sheetState.isVisible) {
+            UJournalBottomSheet(
+                sheetState = sheetState,
+                onDismiss = { hideBottomSheet() }
+            ) {
+                MediaActions(
+                    onSuccessTakePicture = { uri ->
+                        user.profileImageURL = uri.toString()
+                        userViewModel.updateUserData(user)
+
+                        hideBottomSheet()
+                    },
+                    onSuccessChooseFromGallery = { uri ->
+                        user.profileImageURL = uri.toString()
+                        userViewModel.updateUserData(user)
+
+                        hideBottomSheet()
+                    }
+                )
             }
-          ) {
-              Text(text = "Logout")
-          }
         }
     }
 }
