@@ -2,6 +2,7 @@ package id.ac.umn.ujournal.ui.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,14 +31,24 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.Uri
+import coil3.compose.AsyncImage
+import coil3.toCoilUri
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +60,22 @@ fun ProfileScreen(
 ) {
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
+
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+    var photoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    fun showBottomSheet() {
+        coroutineScope.launch {
+            sheetState.show()
+        }
+    }
+
+    fun hideBottomSheet() {
+        coroutineScope.launch {
+            sheetState.hide()
+        }
+    }
 
     fun onLogoutClick() {
         userViewModel.logout()
@@ -83,13 +110,28 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier.padding(30.dp)
                 ) {
-                    Image(
-//                        TODO: onClick change pfp
-                        painter = painterResource(id = R.drawable.default_profile_picture),
-                        contentDescription = " Profile Picture",
+//                    Image(
+////                        TODO: onClick change pfp
+//                        painter = painterResource(id = R.drawable.default_profile_picture),
+//                        contentDescription = " Profile Picture",
+//                        modifier = Modifier
+//                            .clip(CircleShape)
+//                            .size(120.dp)
+//                            .clickable {
+//                                showBottomSheet()
+//                            }
+//                    )
+                    AsyncImage(
+                        model = photoUri ?: R.drawable.default_profile_picture,
+                        contentDescription = "Profile Picture",
                         modifier = Modifier
                             .clip(CircleShape)
+                            .size(120.dp)
+                            .clickable {
+                                showBottomSheet()
+                            }
                     )
+
                 }
             }
             Column(
@@ -182,6 +224,24 @@ fun ProfileScreen(
                         )
                     }
                 }
+            }
+        }
+
+        if (sheetState.isVisible) {
+            UJournalBottomSheet(
+                sheetState = sheetState,
+                onDismiss = { hideBottomSheet() }
+            ) {
+                MediaActions(
+                    onSuccessTakePicture = { uri ->
+                        photoUri = uri.toCoilUri()
+                        hideBottomSheet()
+                    },
+                    onSuccessChooseFromGallery = { uri ->
+                        photoUri = uri?.toCoilUri()
+                        hideBottomSheet()
+                    }
+                )
             }
         }
     }
