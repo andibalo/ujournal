@@ -95,7 +95,8 @@ fun CalendarDataDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onToggleSort = {
                             isSortedDescending = !isSortedDescending
-                        }
+                        },
+                        isSortedDescending = isSortedDescending
                     )
                 },
             )

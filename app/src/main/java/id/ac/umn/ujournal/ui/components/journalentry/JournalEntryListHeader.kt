@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 fun JournalEntryListHeader(
     modifier: Modifier = Modifier,
     onToggleSort: () -> Unit = {},
-    title: String = "Entries"
+    title: String = "Entries",
+    isSortedDescending: Boolean = true
 ){
     Row(
         modifier = modifier,
@@ -28,11 +29,18 @@ fun JournalEntryListHeader(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        IconButton(onClick = onToggleSort) {
-            Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (isSortedDescending) "Newest" else "Oldest",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(onClick = onToggleSort) {
                 Icon(
                     Icons.AutoMirrored.Filled.Sort,
-                    contentDescription = "Visibility Icon"
+                    contentDescription = "Toggle Sorting Icon"
                 )
             }
         }

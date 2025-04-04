@@ -183,7 +183,8 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onToggleSort = {
                             isSortedDescending = !isSortedDescending
-                        }
+                        },
+                        isSortedDescending = isSortedDescending
                     )
                 },
             )
