@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.DarkMode
@@ -110,17 +111,6 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier.padding(30.dp)
                 ) {
-//                    Image(
-////                        TODO: onClick change pfp
-//                        painter = painterResource(id = R.drawable.default_profile_picture),
-//                        contentDescription = " Profile Picture",
-//                        modifier = Modifier
-//                            .clip(CircleShape)
-//                            .size(120.dp)
-//                            .clickable {
-//                                showBottomSheet()
-//                            }
-//                    )
                     AsyncImage(
                         model = photoUri ?: R.drawable.default_profile_picture,
                         contentDescription = "Profile Picture",
@@ -150,11 +140,13 @@ fun ProfileScreen(
                     ) {
                         Icon(
                             Icons.Filled.Badge,
-                            contentDescription = "Name"
+                            contentDescription = "Name",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = user.firstName + " " + user.lastName,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.W400
                         )
                     }
                     Row(
@@ -166,11 +158,13 @@ fun ProfileScreen(
                     ) {
                         Icon(
                             Icons.Filled.Mail,
-                            contentDescription = "Name"
+                            contentDescription = "Email",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = user.email,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.W400
                         )
                     }
                 }
@@ -193,11 +187,12 @@ fun ProfileScreen(
                         ) {
                             Icon(
                                 Icons.Filled.DarkMode,
-                                contentDescription = "Dark Mode Toggle"
+                                contentDescription = "Dark Mode Toggle",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = "Dark Mode",
-                                fontSize = 18.sp
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                         Switch(
@@ -212,15 +207,20 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
+                            shape = RoundedCornerShape(5.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 onLogoutClick()
                             }
                         ) {
-                            Text(text = "Logout")
+                            Text(
+                                text = "Logout"
+                            )
                         }
                         Text(
                             text = "Kelompok 3",
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
