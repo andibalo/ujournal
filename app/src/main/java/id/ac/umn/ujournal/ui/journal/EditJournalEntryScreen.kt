@@ -21,10 +21,12 @@ import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.TimePickerModal
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.CreateJournalEntryBottomTab
 import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
+import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
@@ -71,6 +73,7 @@ fun EditJournalEntryScreen(
     var createdAt by rememberSaveable { mutableStateOf(journalEntry.createdAt) }
     var showLocationPicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -125,7 +128,7 @@ fun EditJournalEntryScreen(
             journalEntryID = journalEntry.id.toString(),
             newTitle = entryTitle,
             newDescription = entryBody,
-            newImageURI = photoUri.toString(),
+            newImageURI = if (photoUri == null) null else photoUri.toString(),
             newLatitude = latitude,
             newLongitude = longitude,
             updatedAt = LocalDateTime.now(),
@@ -165,6 +168,17 @@ fun EditJournalEntryScreen(
         )
     }
 
+    if (showTimePicker) {
+        TimePickerModal(
+            onDismiss = {
+                showTimePicker = false
+            },
+            onConfirm = {
+                createdAt = createdAt.withHour(it.hour).withMinute(it.minute)
+                showTimePicker = false
+            },
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
@@ -256,6 +270,18 @@ fun EditJournalEntryScreen(
                 )
                 Spacer(Modifier.padding(horizontal = 1.dp))
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = "Date dropdown")
+            }
+
+            TextButton(
+                onClick = {
+                    showTimePicker = true
+                }
+            ) {
+                Text(
+                    text = createdAt.format(HourTimeFormatter24)
+                )
+                Spacer(Modifier.padding(horizontal = 1.dp))
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Time dropdown")
             }
 
             Column(modifier = Modifier.padding(10.dp)) {

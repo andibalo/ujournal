@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
+import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import java.time.LocalDateTime
@@ -64,7 +65,7 @@ fun JournalEntryItem(
                 )
             }
             AsyncImage(
-                model = imageURI,
+                model =  if (imageURI != null && imageURI != "") imageURI else R.drawable.default_placeholder_image,
                 modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
                 contentDescription = "Journal Entry Photo",
                 contentScale = ContentScale.Crop

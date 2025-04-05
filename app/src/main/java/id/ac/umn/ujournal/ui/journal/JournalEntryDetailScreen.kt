@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
+import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
@@ -80,23 +81,20 @@ fun JournalEntryDetailScreen(
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
-                if (journalEntry.imageURI != null) {
-                    AsyncImage(
-                        model = journalEntry.imageURI,
-                        modifier = Modifier.fillMaxWidth().height(
-                            when(
-                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
-                            ) {
-                                WindowWidthSizeClass.MEDIUM -> 350.dp
-                                WindowWidthSizeClass.EXPANDED -> 350.dp
-                                else -> 250.dp
-                            }
-                        ),
-                        contentDescription = "Journal Entry Photo",
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
+                AsyncImage(
+                    model = if (journalEntry.imageURI != null && journalEntry.imageURI != "") journalEntry.imageURI else R.drawable.default_placeholder_image,
+                    modifier = Modifier.fillMaxWidth().height(
+                        when(
+                            adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                        ) {
+                            WindowWidthSizeClass.MEDIUM -> 350.dp
+                            WindowWidthSizeClass.EXPANDED -> 350.dp
+                            else -> 250.dp
+                        }
+                    ),
+                    contentDescription = "Journal Entry Photo",
+                    contentScale = ContentScale.Crop
+                )
                 Column(modifier = Modifier.padding(10.dp)) {
                     if (journalEntry.latitude != null && journalEntry.longitude != null) {
                         Row(

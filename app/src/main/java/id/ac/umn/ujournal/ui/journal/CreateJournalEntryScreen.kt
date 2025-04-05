@@ -48,10 +48,12 @@ import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
+import id.ac.umn.ujournal.ui.components.common.TimePickerModal
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.components.journalentry.CreateJournalEntryBottomTab
 import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
+import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.ui.util.getAddressFromLatLong
 import id.ac.umn.ujournal.ui.util.toLocalMilliseconds
@@ -77,8 +79,10 @@ fun CreateJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
 ) {
-    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
     var entryTitleInputErrMsg by remember { mutableStateOf("") }
     var entryBody by rememberSaveable { mutableStateOf("") }
@@ -146,7 +150,7 @@ fun CreateJournalEntryScreen(
             id = UUID.randomUUID(),
             title = entryTitle,
             description = entryBody,
-            imageURI = photoUri.toString(),
+            imageURI = if (photoUri == null) null else photoUri.toString(),
             latitude = latitude,
             longitude = longitude,
             createdAt = entryDate,
@@ -239,13 +243,31 @@ fun CreateJournalEntryScreen(
                     },
                     onDateSelected = { selectedTimestamp ->
                         if (selectedTimestamp != null) {
-                            entryDate = LocalDateTime.ofInstant(
+                            val selectedDate = LocalDateTime.ofInstant(
                                 Instant.ofEpochMilli(selectedTimestamp),
                                 ZoneId.systemDefault()
                             )
+
+                            if(selectedDate.toLocalDate() == currentDate.toLocalDate()) {
+                                entryDate = LocalDateTime.now()
+                            } else {
+                                entryDate = selectedDate
+                            }
                         }
                     },
                     dataInSeconds = entryDate.toLocalMilliseconds()
+                )
+            }
+
+            if (showTimePicker) {
+                TimePickerModal(
+                    onDismiss = {
+                        showTimePicker = false
+                    },
+                    onConfirm = {
+                        entryDate = entryDate.withHour(it.hour).withMinute(it.minute)
+                        showTimePicker = false
+                    },
                 )
             }
 
@@ -291,6 +313,20 @@ fun CreateJournalEntryScreen(
                 )
                 Spacer(Modifier.padding(horizontal = 1.dp))
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = "Date dropdown")
+            }
+
+            if(entryDate.toLocalDate() != currentDate.toLocalDate()){
+                TextButton(
+                    onClick = {
+                        showTimePicker = true
+                    }
+                ) {
+                    Text(
+                        text = entryDate.format(HourTimeFormatter24)
+                    )
+                    Spacer(Modifier.padding(horizontal = 1.dp))
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = "Time dropdown")
+                }
             }
 
             Column(
