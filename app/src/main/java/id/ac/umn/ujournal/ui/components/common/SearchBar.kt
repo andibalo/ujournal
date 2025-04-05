@@ -13,7 +13,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 
 @Composable
@@ -31,7 +30,7 @@ fun SearchBar(
         TextField(
             value = value,
             onValueChange = onTextChange,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+            textStyle = MaterialTheme.typography.bodyLarge,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onCloseSearch() }),
             placeholder = placeholder,
