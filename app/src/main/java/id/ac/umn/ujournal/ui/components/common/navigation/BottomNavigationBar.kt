@@ -1,8 +1,8 @@
 package id.ac.umn.ujournal.ui.components.common.navigation
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -21,8 +21,8 @@ fun UJournalBottomNavigationBar(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { it }),
-        exit = slideOutVertically(targetOffsetY = { it })
+        enter = expandVertically(),
+        exit = shrinkVertically() ,
     ) {
         NavigationBar {
             TOP_LEVEL_DESTINATIONS.forEachIndexed { index, destination ->

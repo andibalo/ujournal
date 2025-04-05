@@ -44,6 +44,7 @@ import io.konform.validation.Validation
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.constraints.pattern
 import io.konform.validation.messagesAtPath
+import java.util.Locale
 import java.util.UUID
 
 data class RegisterInput(
@@ -99,7 +100,7 @@ fun RegisterScreen(
     fun onRegisterClick() {
         val validationResult = validateRegisterInput(
             RegisterInput(
-                firstNameInput, lastNameInput, emailInput, passwordInput
+                firstNameInput, lastNameInput, emailInput, passwordInput, confirmPasswordInput
             )
         )
 
@@ -136,8 +137,16 @@ fun RegisterScreen(
         try {
             userViewModel.register(User(
                 id = UUID.randomUUID(),
-                firstName = firstNameInput,
-                lastName = lastNameInput,
+                firstName = firstNameInput.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(
+                        Locale.getDefault()
+                    ) else it.toString()
+                },
+                lastName = lastNameInput.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(
+                        Locale.getDefault()
+                    ) else it.toString()
+                },
                 email = emailInput,
                 profileImageURL = null,
                 password = confirmPasswordInput

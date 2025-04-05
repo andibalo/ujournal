@@ -167,7 +167,7 @@ fun EditJournalEntryScreen(
 
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
         topBar = {
             UJournalTopAppBar(
                 title = { Text(text = "Edit Journal") },
