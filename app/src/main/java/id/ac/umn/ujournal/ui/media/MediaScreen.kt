@@ -45,7 +45,7 @@ fun MediaScreen(
     onMediaItemClick : (journalEntryID: String) -> Unit = {},
 ) {
 
-    val groupedByDateJournalEntries = journalEntryViewModel.getJournalEntriesGroupedByDate()
+    val groupedByDateJournalEntries = journalEntryViewModel.getJournalEntriesGroupedByDate(true)
     val userState by userViewModel.userState.collectAsState()
 
     val adaptiveInfo = currentWindowAdaptiveInfo()

@@ -73,8 +73,22 @@ class JournalEntryViewModel : ViewModel() {
         }
     }
 
-    fun getJournalEntriesGroupedByDate(): Map<String, List<JournalEntry>> {
+    fun getJournalEntriesGroupedByDate(
+        onlyContainImage : Boolean = false
+    ): Map<String, List<JournalEntry>> {
         val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+
+        if(onlyContainImage) {
+            return _journalEntries.value
+                .filter {
+                    !it.imageURI.isNullOrBlank()
+                }
+                .sortedByDescending { it.createdAt }
+                .groupBy { entry ->
+                    val date = entry.createdAt.toLocalDate()
+                    dateFormatter.format(date)
+                }
+        }
 
         return _journalEntries.value
             .sortedByDescending { it.createdAt }
