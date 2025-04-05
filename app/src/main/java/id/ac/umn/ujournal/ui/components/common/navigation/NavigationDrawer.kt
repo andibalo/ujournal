@@ -72,7 +72,7 @@ fun PermanentNavigationDrawerContent(
                     Text(
                         modifier = Modifier
                             .padding(16.dp).fillMaxWidth(),
-                        text = "UJournal",
+                        text = "U-Journal",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
@@ -160,7 +160,7 @@ fun ModalNavigationDrawerContent(
                     ) {
 
                         Text(
-                            text = "UJournal",
+                            text = "U-Journal",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
