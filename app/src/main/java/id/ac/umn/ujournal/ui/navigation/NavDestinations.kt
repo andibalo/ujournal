@@ -111,7 +111,7 @@ object CalendarDateDetail : UJournalDestination {
 }
 
 
-val bottomTabRowScreens = listOf(Home, Calendar, Media, Map)
+val TOP_LEVEL_DESTINATIONS = listOf(Home, Calendar, Media, Map)
 val uJournalAppScreens = listOf(
     Home,
     Calendar,

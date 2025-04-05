@@ -7,6 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavDestination
+import androidx.window.core.layout.WindowHeightSizeClass
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
 
 @Composable
 fun LazyListState.isScrollingUp(): Boolean {
@@ -25,3 +29,12 @@ fun LazyListState.isScrollingUp(): Boolean {
         }
     }.value
 }
+
+fun NavDestination?.hasRoute(destination: String): Boolean {
+    return this?.route == destination
+}
+
+fun WindowSizeClass.isCompact() =
+    windowWidthSizeClass == WindowWidthSizeClass.COMPACT ||
+            windowHeightSizeClass == WindowHeightSizeClass.COMPACT
+

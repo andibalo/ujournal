@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,6 +20,7 @@ import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.*
 import id.ac.umn.ujournal.ui.components.common.SearchBar
+import id.ac.umn.ujournal.ui.util.isCompact
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +57,8 @@ fun HomeScreen(
             }
         }
     }
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -138,21 +142,23 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = lazyListState.isScrollingUp(),
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
-            ) {
-                FloatingActionButton(
-                    onClick = onFABClick,
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+            if(adaptiveInfo.windowSizeClass.isCompact()) {
+                AnimatedVisibility(
+                    visible = lazyListState.isScrollingUp(),
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
                 ) {
-                    Icon(
-                        Icons.Filled.Add,
-                        "Add new journal entry floating action button",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    FloatingActionButton(
+                        onClick = onFABClick,
+                        shape = CircleShape,
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            "Add new journal entry floating action button",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             }
         },
