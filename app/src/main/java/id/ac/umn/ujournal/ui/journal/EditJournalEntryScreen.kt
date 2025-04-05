@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
@@ -71,6 +73,8 @@ fun EditJournalEntryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -199,7 +203,15 @@ fun EditJournalEntryScreen(
             if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
-                    modifier = Modifier.fillMaxWidth().height(250.dp),
+                    modifier = Modifier.fillMaxWidth().height(
+                        when(
+                            adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                        ) {
+                            WindowWidthSizeClass.MEDIUM -> 350.dp
+                            WindowWidthSizeClass.EXPANDED -> 350.dp
+                            else -> 250.dp
+                        }
+                    ),
                     contentDescription = "Journal Entry Photo",
                     contentScale = ContentScale.Crop
                 )

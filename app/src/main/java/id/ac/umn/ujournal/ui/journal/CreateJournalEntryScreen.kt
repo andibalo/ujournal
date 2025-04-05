@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
@@ -81,6 +83,8 @@ fun CreateJournalEntryScreen(
     var showLocationPicker by remember { mutableStateOf(false) }
     var latitude: Double? by rememberSaveable { mutableStateOf(null) }
     var longitude: Double? by rememberSaveable { mutableStateOf(null) }
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
 
     val currentDate = LocalDateTime.now()
     var entryDate: LocalDateTime by rememberSaveable {
@@ -211,7 +215,15 @@ fun CreateJournalEntryScreen(
             if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
-                    modifier = Modifier.fillMaxWidth().height(250.dp),
+                    modifier = Modifier.fillMaxWidth().height(
+                        when(
+                            adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                        ) {
+                            WindowWidthSizeClass.MEDIUM -> 350.dp
+                            WindowWidthSizeClass.EXPANDED -> 350.dp
+                            else -> 250.dp
+                        }
+                    ),
                     contentDescription = "Journal Entry Photo",
                     contentScale = ContentScale.Crop
                 )

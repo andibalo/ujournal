@@ -17,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.ErrorScreen
 import id.ac.umn.ujournal.ui.components.common.LoadingScreen
@@ -45,6 +47,8 @@ fun MediaScreen(
 
     val groupedByDateJournalEntries = journalEntryViewModel.getJournalEntriesGroupedByDate()
     val userState by userViewModel.userState.collectAsState()
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
@@ -100,7 +104,13 @@ fun MediaScreen(
 
                     item {
                         NonLazyGrid(
-                            columns = 3,
+                            columns = when(
+                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                            ) {
+                                WindowWidthSizeClass.MEDIUM -> 5
+                                WindowWidthSizeClass.EXPANDED -> 7
+                                else -> 3
+                            },
                             itemCount = journalEntries.size,
                             modifier = Modifier
                                 .padding(start = 7.5.dp, end = 7.5.dp)

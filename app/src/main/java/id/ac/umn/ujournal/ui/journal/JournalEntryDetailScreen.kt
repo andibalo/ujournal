@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
@@ -37,6 +39,7 @@ fun JournalEntryDetailScreen(
 
     val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val adaptiveInfo = currentWindowAdaptiveInfo()
 
     if (journalEntry == null) {
         onBackButtonClick()
@@ -80,7 +83,15 @@ fun JournalEntryDetailScreen(
                 if (journalEntry.imageURI != null) {
                     AsyncImage(
                         model = journalEntry.imageURI,
-                        modifier = Modifier.fillMaxWidth().height(250.dp),
+                        modifier = Modifier.fillMaxWidth().height(
+                            when(
+                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                            ) {
+                                WindowWidthSizeClass.MEDIUM -> 350.dp
+                                WindowWidthSizeClass.EXPANDED -> 350.dp
+                                else -> 250.dp
+                            }
+                        ),
                         contentDescription = "Journal Entry Photo",
                         contentScale = ContentScale.Crop
                     )
