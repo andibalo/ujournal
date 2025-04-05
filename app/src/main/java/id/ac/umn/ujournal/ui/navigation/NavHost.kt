@@ -34,7 +34,7 @@ fun UJournalNavHost(
     SnackbarControllerProvider { snackBarHost ->
         NavHost(
             navController = navController,
-            startDestination = Home.route,
+            startDestination = Login.route,
             modifier = modifier
         ) {
             composable(route = Login.route) {
