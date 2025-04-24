@@ -35,6 +35,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.ui.components.common.DividerText
+import id.ac.umn.ujournal.ui.components.common.GoogleAuthButton
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
@@ -196,7 +198,7 @@ fun LoginScreen(
 
                     passwordInput = it
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Button(
                     shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -205,6 +207,15 @@ fun LoginScreen(
                     }
                 ) {
                     Text(text = "Login")
+                }
+                DividerText(
+                    text = "Or continue with"
+                )
+                GoogleAuthButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Google"
+                ) {
+                    // TODO: implement google auth
                 }
                 Row(
                     horizontalArrangement = Arrangement.Center,
