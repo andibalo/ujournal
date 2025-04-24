@@ -35,6 +35,7 @@ import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
@@ -45,9 +46,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     themeViewModel: ThemeViewModel,
+    authViewModel : AuthViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
-    navigateToLoginScreen : () -> Unit = {}
 ) {
     val themeState by themeViewModel.themeMode.collectAsState()
     val userState by userViewModel.userState.collectAsState()
@@ -70,7 +71,7 @@ fun ProfileScreen(
 
     fun onLogoutClick() {
         userViewModel.logout()
-        navigateToLoginScreen()
+        authViewModel.logout()
     }
 
     Scaffold(

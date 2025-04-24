@@ -19,7 +19,7 @@ sealed class UserState {
 class UserViewModel : ViewModel() {
 
     // TODO: remove _users after backend integration
-    private val _users  =MutableStateFlow(getInitialUserListData())
+    private val _users  = MutableStateFlow(getInitialUserListData())
 
     val users: StateFlow<List<User>> get() = _users
 
@@ -106,6 +106,23 @@ class UserViewModel : ViewModel() {
     }
 
     // TODO: remove after backend integration
+    fun setUserData(email: String)  {
+        Log.d("UserViewModel.setUserData", "Current List: ${_users.value}")
+
+        val user = _users.value.firstOrNull { user ->
+            user.email == email
+        }
+
+        if(user == null) {
+            throw Exception("User not found")
+        }
+
+        _userDummyData.update {
+            user
+        }
+    }
+
+    // TODO: remove after backend integration
     fun logout()  {
         _userDummyData.update {
             null
@@ -120,7 +137,7 @@ private fun generateInitialUser(): User {
         firstName = "John",
         lastName = "Doe",
         email = "test@gmail.com",
-        password = "123",
+        password = "123456",
         profileImageURL = "https://randomuser.me/api/portraits/men/75.jpg",
     )
 }

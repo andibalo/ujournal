@@ -10,6 +10,7 @@ import id.ac.umn.ujournal.ui.auth.LoginScreen
 import id.ac.umn.ujournal.ui.auth.RegisterScreen
 import id.ac.umn.ujournal.ui.calendar.CalendarDataDetailScreen
 import id.ac.umn.ujournal.ui.calendar.CalendarScreen
+import id.ac.umn.ujournal.ui.components.common.ProtectedScreen
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarControllerProvider
 import id.ac.umn.ujournal.ui.home.HomeScreen
 import id.ac.umn.ujournal.ui.journal.CreateJournalEntryScreen
@@ -19,6 +20,7 @@ import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.ui.map.MapScreen
 import id.ac.umn.ujournal.ui.map.MediaScreen
 import id.ac.umn.ujournal.ui.profile.ProfileScreen
+import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 
@@ -30,6 +32,7 @@ fun UJournalNavHost(
 ) {
     val journalEntryViewModel: JournalEntryViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
+    val authViewModel : AuthViewModel = viewModel()
 
     SnackbarControllerProvider { snackBarHost ->
         NavHost(
@@ -39,6 +42,7 @@ fun UJournalNavHost(
         ) {
             composable(route = Login.route) {
                 LoginScreen(
+                    authViewModel = authViewModel,
                     userViewModel = userViewModel,
                     onSignUpClick = {
                         navController.navigate(Register.route)
@@ -51,6 +55,7 @@ fun UJournalNavHost(
             }
             composable(route = Register.route) {
                 RegisterScreen(
+                    authViewModel = authViewModel,
                     userViewModel = userViewModel,
                     onLoginClick = {
                         navController.navigate(Login.route)
@@ -62,75 +67,115 @@ fun UJournalNavHost(
                 )
             }
             composable(route = Home.route) {
-                HomeScreen(
-                    userViewModel = userViewModel,
-                    journalEntryViewModel = journalEntryViewModel,
-                    onProfileClick = {
-                        navController.navigate(Profile.route)
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                    onFABClick = {
-                        navController.navigate(CreateJournalEntry.route)
-                    },
-                    onJournalEntryClick = { journalEntryID ->
-                        navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
-                    }
-                )
+                    authViewModel = authViewModel
+                ) {
+                    HomeScreen(
+                        userViewModel = userViewModel,
+                        journalEntryViewModel = journalEntryViewModel,
+                        onProfileClick = {
+                            navController.navigate(Profile.route)
+                        },
+                        onFABClick = {
+                            navController.navigate(CreateJournalEntry.route)
+                        },
+                        onJournalEntryClick = { journalEntryID ->
+                            navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
+                        }
+                    )
+                }
             }
             composable(route = Calendar.route) {
-                CalendarScreen(
-                    userViewModel = userViewModel,
-                    journalEntryViewModel = journalEntryViewModel,
-                    onProfileClick = {
-                        navController.navigate(Profile.route)
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                    navigateToCalendarDateDetailScreen = { date ->
-                        navController.navigate("${CalendarDateDetail.route}/$date")
-                    }
-                )
+                    authViewModel = authViewModel
+                ) {
+                    CalendarScreen(
+                        userViewModel = userViewModel,
+                        journalEntryViewModel = journalEntryViewModel,
+                        onProfileClick = {
+                            navController.navigate(Profile.route)
+                        },
+                        navigateToCalendarDateDetailScreen = { date ->
+                            navController.navigate("${CalendarDateDetail.route}/$date")
+                        }
+                    )
+                }
             }
             composable(route = Media.route) {
-                MediaScreen(
-                    userViewModel = userViewModel,
-                    journalEntryViewModel = journalEntryViewModel,
-                    onProfileClick = {
-                        navController.navigate(Profile.route)
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                    onMediaItemClick = { journalEntryID ->
-                        navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
-                    },
-                )
+                    authViewModel = authViewModel
+                ) {
+                    MediaScreen(
+                        userViewModel = userViewModel,
+                        journalEntryViewModel = journalEntryViewModel,
+                        onProfileClick = {
+                            navController.navigate(Profile.route)
+                        },
+                        onMediaItemClick = { journalEntryID ->
+                            navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
+                        },
+                    )
+                }
             }
             composable(route = Map.route) {
-                MapScreen(
-                    journalEntryViewModel = journalEntryViewModel,
-                    navigateToJournalDetail = { journalEntry ->
-                        navController.navigate("${JournalEntryDetail.route}/${journalEntry.id}")
-                    }
-                )
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
+                    },
+                    authViewModel = authViewModel
+                ) {
+                    MapScreen(
+                        journalEntryViewModel = journalEntryViewModel,
+                        navigateToJournalDetail = { journalEntry ->
+                            navController.navigate("${JournalEntryDetail.route}/${journalEntry.id}")
+                        }
+                    )
+                }
             }
             composable(route = Profile.route) {
-                ProfileScreen(
-                    themeViewModel = themeViewModel,
-                    userViewModel = userViewModel,
-                    onBackButtonClick = {
-                        if (navController.previousBackStackEntry != null) {
-                            navController.navigateUp()
-                        }
-                    },
-                    navigateToLoginScreen = {
+                ProtectedScreen(
+                    redirectToLogin = {
                         navController.navigate(Login.route)
-                    }
-                )
+                    },
+                    authViewModel = authViewModel
+                ){
+                    ProfileScreen(
+                        authViewModel = authViewModel,
+                        themeViewModel = themeViewModel,
+                        userViewModel = userViewModel,
+                        onBackButtonClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.navigateUp()
+                            }
+                        },
+                    )
+                }
             }
             composable(route = CreateJournalEntry.route) {
-                CreateJournalEntryScreen(
-                    journalEntryViewModel = journalEntryViewModel,
-                    onBackButtonClick = {
-                        if (navController.previousBackStackEntry != null) {
-                            navController.navigateUp()
-                        }
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                )
+                    authViewModel = authViewModel
+                ) {
+                    CreateJournalEntryScreen(
+                        journalEntryViewModel = journalEntryViewModel,
+                        onBackButtonClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.navigateUp()
+                            }
+                        },
+                    )
+                }
             }
             composable(
                 route = "${EditJournalEntry.route}/{journalEntryID}",
@@ -139,15 +184,22 @@ fun UJournalNavHost(
                 val journalEntryID =
                     navBackStackEntry.arguments?.getString("journalEntryID")
 
-                EditJournalEntryScreen(
-                    journalEntryID = journalEntryID,
-                    journalEntryViewModel = journalEntryViewModel,
-                    onBackButtonClick = {
-                        if (navController.previousBackStackEntry != null) {
-                            navController.navigateUp()
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
+                    },
+                    authViewModel = authViewModel
+                ) {
+                    EditJournalEntryScreen(
+                        journalEntryID = journalEntryID,
+                        journalEntryViewModel = journalEntryViewModel,
+                        onBackButtonClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.navigateUp()
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
             composable(
                 route = JournalEntryDetail.routeWithArgs,
@@ -157,18 +209,25 @@ fun UJournalNavHost(
                 val journalEntryID =
                     navBackStackEntry.arguments?.getString(JournalEntryDetail.journalEntryIDArg)
 
-                JournalEntryDetailScreen(
-                    journalEntryViewModel = journalEntryViewModel,
-                    journalEntryID = journalEntryID,
-                    onBackButtonClick = {
-                        if (navController.previousBackStackEntry != null) {
-                            navController.navigateUp()
-                        }
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                    onEditButtonClick = { journalEntryID ->
-                        navController.navigate("${EditJournalEntry.route}/$journalEntryID")
-                    }
-                )
+                    authViewModel = authViewModel
+                ) {
+                    JournalEntryDetailScreen(
+                        journalEntryViewModel = journalEntryViewModel,
+                        journalEntryID = journalEntryID,
+                        onBackButtonClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.navigateUp()
+                            }
+                        },
+                        onEditButtonClick = { journalEntryID ->
+                            navController.navigate("${EditJournalEntry.route}/$journalEntryID")
+                        }
+                    )
+                }
             }
             composable(
                 route = CalendarDateDetail.routeWithArgs,
@@ -178,18 +237,25 @@ fun UJournalNavHost(
                 val dateArg =
                     navBackStackEntry.arguments?.getString(CalendarDateDetail.calendarDateArg)
 
-                CalendarDataDetailScreen(
-                    selectedDate = dateArg,
-                    journalEntryViewModel = journalEntryViewModel,
-                    onBackButtonClick = {
-                        if (navController.previousBackStackEntry != null) {
-                            navController.navigateUp()
-                        }
+                ProtectedScreen(
+                    redirectToLogin = {
+                        navController.navigate(Login.route)
                     },
-                    onJournalEntryClick = { journalEntryID ->
-                        navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
-                    }
-                )
+                    authViewModel = authViewModel
+                ) {
+                    CalendarDataDetailScreen(
+                        selectedDate = dateArg,
+                        journalEntryViewModel = journalEntryViewModel,
+                        onBackButtonClick = {
+                            if (navController.previousBackStackEntry != null) {
+                                navController.navigateUp()
+                            }
+                        },
+                        onJournalEntryClick = { journalEntryID ->
+                            navController.navigate("${JournalEntryDetail.route}/$journalEntryID")
+                        }
+                    )
+                }
             }
         }
     }

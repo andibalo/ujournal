@@ -22,9 +22,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,14 +39,19 @@ import id.ac.umn.ujournal.model.User
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.ui.constant.EMAIL_REGEX
 import id.ac.umn.ujournal.ui.constant.EMAIL_VALIDATION_HINT
 import id.ac.umn.ujournal.ui.constant.NOT_BLANK_VALIDATION_HINT
+import id.ac.umn.ujournal.viewmodel.AuthState
+import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import io.konform.validation.Validation
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.constraints.pattern
 import io.konform.validation.messagesAtPath
+import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
 
@@ -57,6 +65,7 @@ data class RegisterInput(
 
 @Composable
 fun RegisterScreen(
+    authViewModel: AuthViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
     onLoginClick: () -> Unit = {},
     navigateToHomeScreen: () -> Unit = {},
@@ -73,6 +82,16 @@ fun RegisterScreen(
     var confirmPasswordInput by remember { mutableStateOf("") }
     var confirmPasswordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
+    val scope = rememberCoroutineScope()
+
+    val authState = authViewModel.authState.collectAsState()
+
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Authenticated -> navigateToHomeScreen()
+            else -> Unit
+        }
+    }
 
     val validateRegisterInput = Validation {
         RegisterInput::firstName {
@@ -134,40 +153,49 @@ fun RegisterScreen(
             return
         }
 
-        try {
-            userViewModel.register(User(
-                id = UUID.randomUUID(),
-                firstName = firstNameInput.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                },
-                lastName = lastNameInput.replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(
-                        Locale.getDefault()
-                    ) else it.toString()
-                },
-                email = emailInput,
-                profileImageURL = null,
-                password = confirmPasswordInput
-            ))
+        scope.launch {
+            try {
+                authViewModel.register(emailInput, confirmPasswordInput)
+                userViewModel.register(User(
+                    id = UUID.randomUUID(),
+                    firstName = firstNameInput.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    },
+                    lastName = lastNameInput.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    },
+                    email = emailInput,
+                    profileImageURL = null,
+                    password = confirmPasswordInput
+                ))
 
-            navigateToHomeScreen()
-        }catch (e: Exception){
+                navigateToHomeScreen()
+            }catch (e: Exception){
 
-            Log.d("RegisterScreen.onRegisterClick", e.message ?: "Unknown Error")
-            Log.d("RegisterScreen.onRegisterClick", e.stackTraceToString())
+                Log.d("RegisterScreen.onRegisterClick", e.message ?: "Unknown Error")
+                Log.d("RegisterScreen.onRegisterClick", e.stackTraceToString())
 
-            snackbar.showMessage(
-                message = e.message ?: "Something went wrong",
-                severity = Severity.ERROR
-            )
+                snackbar.showMessage(
+                    message = e.message ?: "Something went wrong",
+                    severity = Severity.ERROR
+                )
+            }
         }
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        }
     ) { innerPadding: PaddingValues ->
         Surface(
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -66,6 +67,8 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:6.5.2")
     implementation("io.konform:konform-jvm:0.11.0")
 
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation("com.google.firebase:firebase-auth")
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     // ViewModel utilities for Compose
