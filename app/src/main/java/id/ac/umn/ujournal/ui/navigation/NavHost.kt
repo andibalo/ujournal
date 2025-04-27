@@ -2,6 +2,8 @@ package id.ac.umn.ujournal.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -28,11 +30,11 @@ import id.ac.umn.ujournal.viewmodel.UserViewModel
 fun UJournalNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    authViewModel: AuthViewModel,
+    journalEntryViewModel: JournalEntryViewModel,
+    userViewModel: UserViewModel
 ) {
-    val journalEntryViewModel: JournalEntryViewModel = viewModel()
-    val userViewModel: UserViewModel = viewModel()
-    val authViewModel : AuthViewModel = viewModel()
 
     SnackbarControllerProvider { snackBarHost ->
         NavHost(

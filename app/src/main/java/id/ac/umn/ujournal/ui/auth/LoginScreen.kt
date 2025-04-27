@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,6 +74,7 @@ fun LoginScreen(
     var passwordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val authState = authViewModel.authState.collectAsState()
 
@@ -117,6 +119,28 @@ fun LoginScreen(
                 userViewModel.setUserData(email = emailInput)
 
                 navigateToHomeScreen()
+            }catch (e: Exception){
+
+                Log.d("LoginScreen.onLoginClick", e.message ?: "Unknown Error")
+                Log.d("LoginScreen.onLoginClick", e.stackTraceToString())
+
+                snackbar.showMessage(
+                    message = e.message ?: "Something went wrong",
+                    severity = Severity.ERROR
+                )
+            }
+        }
+    }
+
+    fun onSignInWithGoogle() {
+        scope.launch {
+            try {
+                val userData = authViewModel.firebaseAuthWithGoogle(context)
+                Log.d("LoginScreen.onSignInWithGoogle", "User data: $userData")
+
+//                userViewModel.setUserData(email = emailInput)
+
+//                navigateToHomeScreen()
             }catch (e: Exception){
 
                 Log.d("LoginScreen.onLoginClick", e.message ?: "Unknown Error")
@@ -215,7 +239,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Google"
                 ) {
-                    // TODO: implement google auth
+                    onSignInWithGoogle()
                 }
                 Row(
                     horizontalArrangement = Arrangement.Center,

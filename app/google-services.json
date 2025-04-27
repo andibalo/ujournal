@@ -12,7 +12,20 @@
           "package_name": "id.ac.umn.ujournal"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "741744682924-8h794762l9j767m9fftd5pn53f3101aa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "id.ac.umn.ujournal",
+            "certificate_hash": "3db54c10ca5b6e90d6fe89996e033d6122c5e30c"
+          }
+        },
+        {
+          "client_id": "741744682924-kntjn0puaidr3tubn495j3aqqa9lgefo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDwfY8gAhaWCMGzX4gk5klcYag1XU8ZMdg"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "741744682924-kntjn0puaidr3tubn495j3aqqa9lgefo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
