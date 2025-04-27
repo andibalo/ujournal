@@ -37,13 +37,13 @@ fun GoogleAuthButton(
     borderColor: Color = Color.LightGray,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     progressIndicatorColor: Color = MaterialTheme.colorScheme.primary,
-    onClicked: () -> Unit,
+    onClick: () -> Unit,
 ) {
     Surface(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
             .clickable {
-                onClicked()
+                onClick()
             },
         shape = shape,
         border = BorderStroke(width = 1.dp, color = borderColor),

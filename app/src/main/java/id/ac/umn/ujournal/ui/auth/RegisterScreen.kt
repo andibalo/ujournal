@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -85,6 +86,7 @@ fun RegisterScreen(
     var confirmPasswordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val authState = authViewModel.authState.collectAsState()
 
@@ -157,8 +159,9 @@ fun RegisterScreen(
 
         scope.launch {
             try {
-                authViewModel.register(emailInput, confirmPasswordInput)
-                userViewModel.register(User(
+                authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
+
+                userViewModel.createUser(User(
                     id = UUID.randomUUID(),
                     firstName = firstNameInput.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
@@ -172,8 +175,11 @@ fun RegisterScreen(
                     },
                     email = emailInput,
                     profileImageURL = null,
-                    password = confirmPasswordInput
+                    provider =  null,
+                    password = confirmPasswordInput,
                 ))
+
+                authViewModel.setAuthStatus(true)
 
                 navigateToHomeScreen()
             }catch (e: Exception){
@@ -185,6 +191,74 @@ fun RegisterScreen(
                     message = e.message ?: "Something went wrong",
                     severity = Severity.ERROR
                 )
+            }
+        }
+    }
+
+    fun onRegisterWithGoogle() {
+        scope.launch {
+            try {
+                val userData = authViewModel.firebaseAuthWithGoogle(context)
+
+                if (userData == null){
+                    throw Exception("User data is null")
+                }
+
+                var existingUser = userViewModel.findUserByEmail(userData.email!!)
+
+                if(existingUser != null) {
+                    throw Exception("User already exists")
+                }
+
+                val nameParts = userData.displayName!!.split(" ")
+                var firstName = nameParts[0].lowercase()
+                var lastName = ""
+
+                if (nameParts.size > 1){
+                    lastName = nameParts[nameParts.size - 1].lowercase()
+                }
+
+                userViewModel.createUser(User(
+                    id = UUID.randomUUID(),
+                    firstName = firstName.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    },
+                    lastName =  if(lastName != ""){
+                        lastName.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.getDefault()
+                            ) else it.toString()
+                        }
+                    } else {
+                        null
+                    },
+                    email = userData.email!!,
+                    profileImageURL = if(userData.photoUrl != null) {
+                        userData.photoUrl.toString()
+                    } else {
+                        null
+                    },
+                    provider =  "GOOGLE",
+                    password = null,
+                ))
+
+                authViewModel.setAuthStatus(true)
+
+                navigateToHomeScreen()
+            }catch (e: Exception){
+                Log.d("RegisterScreen.onRegisterWithGoogle", e.message ?: "Unknown Error")
+                Log.d("RegisterScreen.onRegisterWithGoogle", e.stackTraceToString())
+
+                if (e.message != "activity is cancelled by the user.") {
+                    snackbar.showMessage(
+                        message = e.message ?: "Something went wrong",
+                        severity = Severity.ERROR
+                    )
+
+                    authViewModel.logout()
+                }
             }
         }
     }
@@ -327,7 +401,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Google"
                 ) {
-                    // TODO: implement google auth
+                    onRegisterWithGoogle()
                 }
                 Row(
                     horizontalArrangement = Arrangement.Center,

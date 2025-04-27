@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal
 
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
@@ -9,34 +10,55 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.ac.umn.ujournal.ui.components.common.navigation.UJournalNavigationWrapper
 import id.ac.umn.ujournal.ui.navigation.UJournalNavHost
 import id.ac.umn.ujournal.ui.theme.UJournalTheme
+import id.ac.umn.ujournal.viewmodel.AuthViewModel
+import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
+import id.ac.umn.ujournal.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val context: Context = applicationContext
+
         setContent {
             val themeViewModel: ThemeViewModel = viewModel()
+            val journalEntryViewModel: JournalEntryViewModel = viewModel()
+            val userViewModel: UserViewModel = viewModel()
+
+            val authViewModel = AuthViewModel(credentialManager = CredentialManager.create(context))
+
             UJournalTheme(
                 themeViewModel = themeViewModel
             ) {
-                UJournalApp(themeViewModel = themeViewModel)
+                UJournalApp(
+                    themeViewModel = themeViewModel,
+                    authViewModel = authViewModel,
+                    journalEntryViewModel = journalEntryViewModel,
+                    userViewModel = userViewModel
+                )
             }
         }
     }
 }
 
 @Composable
-fun UJournalApp(themeViewModel: ThemeViewModel) {
+fun UJournalApp(
+    themeViewModel: ThemeViewModel,
+    authViewModel: AuthViewModel,
+    journalEntryViewModel: JournalEntryViewModel,
+    userViewModel: UserViewModel
+) {
     val navController = rememberNavController()
-
 
     val currentBackStack by navController.currentBackStackEntryAsState()
 
@@ -49,7 +71,10 @@ fun UJournalApp(themeViewModel: ThemeViewModel) {
         ) {
             UJournalNavHost(
                 navController = navController,
-                themeViewModel = themeViewModel
+                themeViewModel = themeViewModel,
+                authViewModel = authViewModel,
+                journalEntryViewModel = journalEntryViewModel,
+                userViewModel = userViewModel
             )
         }
     }

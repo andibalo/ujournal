@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,6 +74,7 @@ fun LoginScreen(
     var passwordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val authState = authViewModel.authState.collectAsState()
 
@@ -113,9 +115,9 @@ fun LoginScreen(
 
         scope.launch {
             try {
-                authViewModel.login(emailInput, passwordInput)
-                userViewModel.setUserData(email = emailInput)
-
+                authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
+                userViewModel.findAndSetUserData(email = emailInput)
+                authViewModel.setAuthStatus(true)
                 navigateToHomeScreen()
             }catch (e: Exception){
 
@@ -126,6 +128,34 @@ fun LoginScreen(
                     message = e.message ?: "Something went wrong",
                     severity = Severity.ERROR
                 )
+            }
+        }
+    }
+
+    fun onSignInWithGoogle() {
+        scope.launch {
+            try {
+                val userData = authViewModel.firebaseAuthWithGoogle(context)
+
+                if (userData == null){
+                    throw Exception("User data is null")
+                }
+
+                userViewModel.findAndSetUserData(email = userData.email!!)
+                authViewModel.setAuthStatus(true)
+                navigateToHomeScreen()
+            }catch (e: Exception){
+                Log.d("LoginScreen.onSignInWithGoogle", e.message ?: "Unknown Error")
+                Log.d("LoginScreen.onSignInWithGoogle", e.stackTraceToString())
+
+                if (e.message != "activity is cancelled by the user.") {
+                    snackbar.showMessage(
+                        message = e.message ?: "Something went wrong",
+                        severity = Severity.ERROR
+                    )
+
+                    authViewModel.logout()
+                }
             }
         }
     }
@@ -215,7 +245,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     text = "Google"
                 ) {
-                    // TODO: implement google auth
+                    onSignInWithGoogle()
                 }
                 Row(
                     horizontalArrangement = Arrangement.Center,

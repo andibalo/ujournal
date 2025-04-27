@@ -7,4 +7,5 @@
     <string name="profile_screen">Profile</string>
     <string name="login_screen">Login</string>
     <string name="register_screen">Register</string>
+    <string name="default_web_client_id">741744682924-kntjn0puaidr3tubn495j3aqqa9lgefo.apps.googleusercontent.com</string>
 </resources>
