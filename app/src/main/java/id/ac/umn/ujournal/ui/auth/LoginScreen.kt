@@ -115,9 +115,9 @@ fun LoginScreen(
 
         scope.launch {
             try {
-                authViewModel.login(emailInput, passwordInput)
-                userViewModel.setUserData(email = emailInput)
-
+                authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
+                userViewModel.findAndSetUserData(email = emailInput)
+                authViewModel.setAuthStatus(true)
                 navigateToHomeScreen()
             }catch (e: Exception){
 
@@ -136,20 +136,26 @@ fun LoginScreen(
         scope.launch {
             try {
                 val userData = authViewModel.firebaseAuthWithGoogle(context)
-                Log.d("LoginScreen.onSignInWithGoogle", "User data: $userData")
 
-//                userViewModel.setUserData(email = emailInput)
+                if (userData == null){
+                    throw Exception("User data is null")
+                }
 
-//                navigateToHomeScreen()
+                userViewModel.findAndSetUserData(email = userData.email!!)
+                authViewModel.setAuthStatus(true)
+                navigateToHomeScreen()
             }catch (e: Exception){
+                Log.d("LoginScreen.onSignInWithGoogle", e.message ?: "Unknown Error")
+                Log.d("LoginScreen.onSignInWithGoogle", e.stackTraceToString())
 
-                Log.d("LoginScreen.onLoginClick", e.message ?: "Unknown Error")
-                Log.d("LoginScreen.onLoginClick", e.stackTraceToString())
+                if (e.message != "activity is cancelled by the user.") {
+                    snackbar.showMessage(
+                        message = e.message ?: "Something went wrong",
+                        severity = Severity.ERROR
+                    )
 
-                snackbar.showMessage(
-                    message = e.message ?: "Something went wrong",
-                    severity = Severity.ERROR
-                )
+                    authViewModel.logout()
+                }
             }
         }
     }

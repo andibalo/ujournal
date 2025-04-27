@@ -67,7 +67,7 @@ class UserViewModel : ViewModel() {
     }
 
     // TODO: remove after backend integration
-    fun register(user: User) {
+    fun createUser(user: User) {
 
         val currentUserList = _users.value
 
@@ -89,25 +89,8 @@ class UserViewModel : ViewModel() {
     }
 
     // TODO: remove after backend integration
-    fun login(email: String, password: String)  {
-        Log.d("UserViewModel.login", "Current List: ${_users.value}")
-
-        val user = _users.value.firstOrNull { user ->
-            user.email == email  && user.password == password
-        }
-
-        if(user == null) {
-            throw Exception("User not found")
-        }
-
-        _userDummyData.update {
-            user
-        }
-    }
-
-    // TODO: remove after backend integration
-    fun setUserData(email: String)  {
-        Log.d("UserViewModel.setUserData", "Current List: ${_users.value}")
+    fun findAndSetUserData(email: String)  {
+        Log.d("UserViewModel.findAndSetUserData", "Current List: ${_users.value}")
 
         val user = _users.value.firstOrNull { user ->
             user.email == email
@@ -121,6 +104,18 @@ class UserViewModel : ViewModel() {
             user
         }
     }
+
+    // TODO: remove after backend integration
+    fun findUserByEmail(email: String) : User? {
+        Log.d("UserViewModel.findUserByEmail", "Current List: ${_users.value}")
+
+        val user = _users.value.firstOrNull { user ->
+            user.email == email
+        }
+
+        return user
+    }
+
 
     // TODO: remove after backend integration
     fun logout()  {
@@ -139,6 +134,7 @@ private fun generateInitialUser(): User {
         email = "test@gmail.com",
         password = "123456",
         profileImageURL = "https://randomuser.me/api/portraits/men/75.jpg",
+        provider = null
     )
 }
 

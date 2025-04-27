@@ -43,7 +43,7 @@ class AuthViewModel(
         }
     }
 
-    suspend fun login(email : String, password : String){
+    suspend fun firebaseAuthBasicLogin(email : String, password : String){
 
         if(email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
@@ -54,14 +54,13 @@ class AuthViewModel(
 
         try{
             auth.signInWithEmailAndPassword(email,password).await()
-            _authState.value = AuthState.Authenticated
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
         }
     }
 
-    suspend fun register(email : String, password : String){
+    suspend fun firebaseAuthBasicRegister(email : String, password : String){
         if(email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
             throw Exception("Email or password can't be empty")
@@ -71,10 +70,17 @@ class AuthViewModel(
 
         try{
             auth.createUserWithEmailAndPassword(email,password).await()
-            _authState.value = AuthState.Authenticated
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
+        }
+    }
+
+    fun setAuthStatus(isAuthenticated: Boolean) {
+        if(isAuthenticated) {
+            _authState.value = AuthState.Authenticated
+        } else {
+            _authState.value = AuthState.Unauthenticated
         }
     }
 
@@ -83,7 +89,7 @@ class AuthViewModel(
             // Your server's client ID, not your Android client ID.
             .setServerClientId(context.getString(R.string.default_web_client_id))
             // Only show accounts previously used to sign in.
-            .setFilterByAuthorizedAccounts(true)
+            .setFilterByAuthorizedAccounts(false)
             .build()
 
         val request = GetCredentialRequest.Builder()
@@ -107,7 +113,6 @@ class AuthViewModel(
                 val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
 
                 auth.signInWithCredential(firebaseCredential).await()
-                _authState.value = AuthState.Authenticated
 
                 return auth.currentUser
             } else {
@@ -115,7 +120,10 @@ class AuthViewModel(
             }
 
         } catch (e : Exception) {
+            Log.d("AuthViewModel", e.toString())
+
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
+
             throw Exception(e.message?:"Something went wrong")
         }
     }
