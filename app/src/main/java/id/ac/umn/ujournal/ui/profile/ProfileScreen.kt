@@ -1,5 +1,7 @@
 package id.ac.umn.ujournal.ui.profile
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,11 +28,16 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
 import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
@@ -41,6 +48,7 @@ import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,8 +62,12 @@ fun ProfileScreen(
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
 
+    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
+
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+    val storage = Firebase.storage("gs://ujournal-7ec75.firebasestorage.app")
+    val storageRef = storage.reference
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -72,6 +84,25 @@ fun ProfileScreen(
     fun onLogoutClick() {
         userViewModel.logout()
         authViewModel.logout()
+    }
+
+    fun uploadProfileImage(photoUri: Uri) {
+        val ref = storageRef.child("profile_images/${UUID.randomUUID()}.jpg") // Use a unique file name for each upload
+
+        val uploadTask = ref.putFile(photoUri)
+
+        uploadTask.addOnSuccessListener {
+            ref.downloadUrl.addOnSuccessListener { uri ->
+                val downloadUrl = uri.toString()
+
+                user.profileImageURL = downloadUrl
+                userViewModel.updateUserData(user)
+
+                hideBottomSheet()
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("Upload", "Upload failed: ${exception.message}")
+        }
     }
 
     Scaffold(
@@ -226,16 +257,14 @@ fun ProfileScreen(
                 onDismiss = { hideBottomSheet() }
             ) {
                 MediaActions(
-                    onSuccessTakePicture = { uri ->
-                        user.profileImageURL = uri.toString()
-                        userViewModel.updateUserData(user)
-
+                    onSuccessTakePicture = {
+                        photoUri = it
+                        uploadProfileImage(photoUri!!)
                         hideBottomSheet()
                     },
-                    onSuccessChooseFromGallery = { uri ->
-                        user.profileImageURL = uri.toString()
-                        userViewModel.updateUserData(user)
-
+                    onSuccessChooseFromGallery = {
+                        photoUri = it
+                        uploadProfileImage(photoUri!!)
                         hideBottomSheet()
                     }
                 )

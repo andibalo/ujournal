@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
@@ -36,9 +40,11 @@ import io.konform.validation.constraints.maxLength
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
+import com.google.firebase.storage.storage
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.UUID
 
 data class EditJournalInput(
     var entryTitle: String = "",
@@ -78,6 +84,8 @@ fun EditJournalEntryScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    val storage = Firebase.storage("gs://ujournal-7ec75.firebasestorage.app")
+    val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -124,18 +132,48 @@ fun EditJournalEntryScreen(
             return
         }
 
-        journalEntryViewModel.update(
-            journalEntryID = journalEntry.id.toString(),
-            newTitle = entryTitle,
-            newDescription = entryBody,
-            newImageURI = if (photoUri == null) null else photoUri.toString(),
-            newLatitude = latitude,
-            newLongitude = longitude,
-            updatedAt = LocalDateTime.now(),
-            newDate = createdAt
-        )
+        if (photoUri != null) {
+            val ref = storageRef.child("journal_images/${UUID.randomUUID()}.jpg") // Use a unique file name for each upload
 
-        onBackButtonClick()
+            val uploadTask = ref.putFile(photoUri!!)
+
+            uploadTask.addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    val downloadUrl = uri.toString()
+                    journalEntryViewModel.update(
+                        journalEntryID = journalEntry.id.toString(),
+                        newTitle = entryTitle,
+                        newDescription = entryBody,
+                        newImageURI = downloadUrl,
+                        newLatitude = latitude,
+                        newLongitude = longitude,
+                        updatedAt = LocalDateTime.now(),
+                        newDate = createdAt
+                    )
+
+                    journalEntryViewModel.addJournalEntry(journalEntry)
+
+                    onBackButtonClick()
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("Upload", "Upload failed: ${exception.message}")
+            }
+        } else {
+            journalEntryViewModel.update(
+                journalEntryID = journalEntry.id.toString(),
+                newTitle = entryTitle,
+                newDescription = entryBody,
+                newImageURI = null,
+                newLatitude = latitude,
+                newLongitude = longitude,
+                updatedAt = LocalDateTime.now(),
+                newDate = createdAt
+            )
+
+            journalEntryViewModel.addJournalEntry(journalEntry)
+
+            onBackButtonClick()
+        }
     }
 
     if (showLocationPicker) {
