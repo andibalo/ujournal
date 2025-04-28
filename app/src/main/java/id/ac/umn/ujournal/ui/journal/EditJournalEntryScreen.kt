@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
@@ -36,9 +40,20 @@ import io.konform.validation.constraints.maxLength
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
+import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.R
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
+import java.util.UUID
 
 data class EditJournalInput(
     var entryTitle: String = "",
@@ -51,6 +66,7 @@ fun EditJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     journalEntryID: String?,
     onBackButtonClick: () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     if (journalEntryID == null) {
         onBackButtonClick()
@@ -78,6 +94,10 @@ fun EditJournalEntryScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    val context = LocalContext.current
+    val snackbar = SnackbarController.current
+    val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
+    val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -124,18 +144,49 @@ fun EditJournalEntryScreen(
             return
         }
 
-        journalEntryViewModel.update(
-            journalEntryID = journalEntry.id.toString(),
-            newTitle = entryTitle,
-            newDescription = entryBody,
-            newImageURI = if (photoUri == null) null else photoUri.toString(),
-            newLatitude = latitude,
-            newLongitude = longitude,
-            updatedAt = LocalDateTime.now(),
-            newDate = createdAt
-        )
+        if (photoUri != null) {
+            val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
-        onBackButtonClick()
+            val uploadTask = ref.putFile(photoUri!!)
+
+            uploadTask.addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    val downloadUrl = uri.toString()
+                    journalEntryViewModel.update(
+                        journalEntryID = journalEntry.id.toString(),
+                        newTitle = entryTitle,
+                        newDescription = entryBody,
+                        newImageURI = downloadUrl,
+                        newLatitude = latitude,
+                        newLongitude = longitude,
+                        updatedAt = LocalDateTime.now(),
+                        newDate = createdAt
+                    )
+
+                    journalEntryViewModel.addJournalEntry(journalEntry)
+
+                    onBackButtonClick()
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("Upload", "Upload failed: ${exception.message}")
+            }
+        } else {
+            journalEntryViewModel.update(
+                journalEntryID = journalEntry.id.toString(),
+                newTitle = entryTitle,
+                newDescription = entryBody,
+                newImageURI = null,
+                newLatitude = latitude,
+                newLongitude = longitude,
+                updatedAt = LocalDateTime.now(),
+                newDate = createdAt
+            )
+
+            journalEntryViewModel.addJournalEntry(journalEntry)
+
+            onBackButtonClick()
+        }
     }
 
     if (showLocationPicker) {
@@ -182,6 +233,13 @@ fun EditJournalEntryScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        },
         topBar = {
             UJournalTopAppBar(
                 title = { Text(text = "Edit Journal") },

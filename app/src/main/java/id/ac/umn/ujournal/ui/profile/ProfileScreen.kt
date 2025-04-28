@@ -1,5 +1,7 @@
 package id.ac.umn.ujournal.ui.profile
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,21 +28,36 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
 import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.MediaActions
 import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,13 +66,21 @@ fun ProfileScreen(
     authViewModel : AuthViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     val themeState by themeViewModel.themeMode.collectAsState()
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
 
+
+    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
+
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val snackbar = SnackbarController.current
+    val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
+    val storageRef = storage.reference
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -74,8 +99,39 @@ fun ProfileScreen(
         authViewModel.logout()
     }
 
+    fun uploadProfileImage(it: Uri) {
+        val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+        val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
+
+        val uploadTask = ref.putFile(it)
+
+        uploadTask.addOnSuccessListener {
+            ref.downloadUrl.addOnSuccessListener { uri ->
+                val downloadUrl = uri.toString()
+
+                user.profileImageURL = downloadUrl
+                userViewModel.updateUserData(user)
+
+                hideBottomSheet()
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("Upload", "Upload failed: ${exception.message}")
+            snackbar.showMessage(
+                message = exception.message ?: "Upload failed: ${exception.message}",
+                severity = Severity.ERROR
+            )
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        },
         topBar = {
             UJournalTopAppBar(
                 title = {
@@ -226,16 +282,12 @@ fun ProfileScreen(
                 onDismiss = { hideBottomSheet() }
             ) {
                 MediaActions(
-                    onSuccessTakePicture = { uri ->
-                        user.profileImageURL = uri.toString()
-                        userViewModel.updateUserData(user)
-
+                    onSuccessTakePicture = {
+                        uploadProfileImage(it)
                         hideBottomSheet()
                     },
-                    onSuccessChooseFromGallery = { uri ->
-                        user.profileImageURL = uri.toString()
-                        userViewModel.updateUserData(user)
-
+                    onSuccessChooseFromGallery = {
+                        uploadProfileImage(it!!)
                         hideBottomSheet()
                     }
                 )

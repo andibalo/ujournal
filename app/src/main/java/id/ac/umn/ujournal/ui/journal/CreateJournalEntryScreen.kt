@@ -1,6 +1,8 @@
 package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -44,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
 import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
@@ -63,9 +68,19 @@ import io.konform.validation.constraints.maxLength
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
+import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
 import java.util.UUID
 
 data class CreateJournalInput(
@@ -78,6 +93,7 @@ data class CreateJournalInput(
 fun CreateJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -100,8 +116,13 @@ fun CreateJournalEntryScreen(
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+    val snackbar = SnackbarController.current
+    val context = LocalContext.current
+    val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
+    val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
+
 
     val validateCreateJournalInput = Validation {
         CreateJournalInput::entryTitle {
@@ -132,7 +153,7 @@ fun CreateJournalEntryScreen(
     fun onSubmitClick() {
         val validationResult = validateCreateJournalInput(CreateJournalInput(entryTitle, entryBody))
 
-        if(!validationResult.isValid) {
+        if (!validationResult.isValid) {
             val validationErrors = validationResult.errors
 
             if (validationErrors.messagesAtPath(CreateJournalInput::entryTitle).isNotEmpty()) {
@@ -146,21 +167,55 @@ fun CreateJournalEntryScreen(
             return
         }
 
-        val journalEntry = JournalEntry(
-            id = UUID.randomUUID(),
-            title = entryTitle,
-            description = entryBody,
-            imageURI = if (photoUri == null) null else photoUri.toString(),
-            latitude = latitude,
-            longitude = longitude,
-            createdAt = entryDate,
-            updatedAt = null
-        )
+        if (photoUri != null) {
+            val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
-        journalEntryViewModel.addJournalEntry(journalEntry)
+            val uploadTask = ref.putFile(photoUri!!)
 
-        onBackButtonClick()
+            uploadTask.addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    val downloadUrl = uri.toString()
+                    val journalEntry = JournalEntry(
+                        id = UUID.randomUUID(),
+                        title = entryTitle,
+                        description = entryBody,
+                        imageURI = downloadUrl,
+                        latitude = latitude,
+                        longitude = longitude,
+                        createdAt = entryDate,
+                        updatedAt = null
+                    )
+
+                    journalEntryViewModel.addJournalEntry(journalEntry)
+
+                    onBackButtonClick()
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("Upload", "Upload failed: ${exception.message}")
+                snackbar.showMessage(
+                    message = exception.message ?: "Upload failed: ${exception.message}",
+                    severity = Severity.ERROR
+                )
+            }
+        } else {
+            val journalEntry = JournalEntry(
+                id = UUID.randomUUID(),
+                title = entryTitle,
+                description = entryBody,
+                imageURI = null,
+                latitude = latitude,
+                longitude = longitude,
+                createdAt = entryDate,
+                updatedAt = null
+            )
+
+            journalEntryViewModel.addJournalEntry(journalEntry)
+
+            onBackButtonClick()
+        }
     }
+
 
     if (showLocationPicker) {
         LocationPicker(
@@ -178,6 +233,13 @@ fun CreateJournalEntryScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        },
         topBar = {
             UJournalTopAppBar(
                 title = {
