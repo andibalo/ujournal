@@ -164,12 +164,14 @@ fun EditJournalEntryScreen(
                         newDate = createdAt
                     )
 
-                    journalEntryViewModel.addJournalEntry(journalEntry)
-
                     onBackButtonClick()
                 }
             }.addOnFailureListener { exception ->
                 Log.e("Upload", "Upload failed: ${exception.message}")
+                snackbar.showMessage(
+                    message = exception.message ?: "Upload failed: ${exception.message}",
+                    severity = Severity.ERROR
+                )
             }
         } else {
             journalEntryViewModel.update(
@@ -182,8 +184,6 @@ fun EditJournalEntryScreen(
                 updatedAt = LocalDateTime.now(),
                 newDate = createdAt
             )
-
-            journalEntryViewModel.addJournalEntry(journalEntry)
 
             onBackButtonClick()
         }

@@ -83,6 +83,7 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 
+
 data class CreateJournalInput(
     var entryTitle: String = "",
     var entryBody: String = ""

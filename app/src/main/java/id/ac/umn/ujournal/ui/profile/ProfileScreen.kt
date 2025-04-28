@@ -99,18 +99,18 @@ fun ProfileScreen(
         authViewModel.logout()
     }
 
-    fun uploadProfileImage(it: Uri) {
+    fun uploadProfileImage(photoUri: Uri) {
         val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
-        val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
+        val ref = storageRef.child("profile_picture/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
-        val uploadTask = ref.putFile(it)
+        val uploadTask = ref.putFile(photoUri)
 
         uploadTask.addOnSuccessListener {
             ref.downloadUrl.addOnSuccessListener { uri ->
                 val downloadUrl = uri.toString()
 
-                user.profileImageURL = downloadUrl
-                userViewModel.updateUserData(user)
+                val updatedUser = user.copy(profileImageURL = downloadUrl)
+                userViewModel.updateUserData(updatedUser)
 
                 hideBottomSheet()
             }
@@ -283,11 +283,13 @@ fun ProfileScreen(
             ) {
                 MediaActions(
                     onSuccessTakePicture = {
-                        uploadProfileImage(it)
+                        photoUri = it
+                        uploadProfileImage(photoUri!!)
                         hideBottomSheet()
                     },
                     onSuccessChooseFromGallery = {
-                        uploadProfileImage(it!!)
+                        photoUri = it
+                        uploadProfileImage(photoUri!!)
                         hideBottomSheet()
                     }
                 )

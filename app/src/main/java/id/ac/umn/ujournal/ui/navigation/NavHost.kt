@@ -159,6 +159,7 @@ fun UJournalNavHost(
                                 navController.navigateUp()
                             }
                         },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }
@@ -176,6 +177,7 @@ fun UJournalNavHost(
                                 navController.navigateUp()
                             }
                         },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }
@@ -199,7 +201,8 @@ fun UJournalNavHost(
                             if (navController.previousBackStackEntry != null) {
                                 navController.navigateUp()
                             }
-                        }
+                        },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }
