@@ -2,7 +2,7 @@ package id.ac.umn.ujournal.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import id.ac.umn.ujournal.model.JournalEntry
+import id.ac.umn.ujournal.data.model.JournalEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -32,7 +32,7 @@ class JournalEntryViewModel : ViewModel() {
         return _journalEntries.value.firstOrNull { it.id.toString() == journalEntryID }
     }
 
-    fun update(
+    fun updateJournalEntry(
         journalEntryID: String,
         newTitle: String,
         newDescription: String,

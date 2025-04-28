@@ -2,7 +2,6 @@ package id.ac.umn.ujournal.ui.journal
 
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,7 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import com.google.firebase.Firebase
-import id.ac.umn.ujournal.model.JournalEntry
+import id.ac.umn.ujournal.data.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
@@ -70,12 +69,11 @@ import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import com.google.firebase.storage.storage
 import id.ac.umn.ujournal.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import id.ac.umn.ujournal.ui.util.getFileExtension
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -169,7 +167,10 @@ fun CreateJournalEntryScreen(
 
         if (photoUri != null) {
             val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
-            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
+
+            val ext = photoUri!!.getFileExtension(context)
+            val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+            val ref = storageRef.child("journal_images/${fileName}")
 
             val uploadTask = ref.putFile(photoUri!!)
 

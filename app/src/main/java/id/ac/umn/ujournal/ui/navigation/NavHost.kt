@@ -2,9 +2,6 @@ package id.ac.umn.ujournal.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.credentials.CredentialManager
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -159,6 +156,7 @@ fun UJournalNavHost(
                                 navController.navigateUp()
                             }
                         },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }
@@ -176,6 +174,7 @@ fun UJournalNavHost(
                                 navController.navigateUp()
                             }
                         },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }
@@ -199,7 +198,8 @@ fun UJournalNavHost(
                             if (navController.previousBackStackEntry != null) {
                                 navController.navigateUp()
                             }
-                        }
+                        },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }

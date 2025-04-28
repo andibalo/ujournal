@@ -12,10 +12,10 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.data.repository.FirebaseAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
 
@@ -23,10 +23,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
-    val credentialManager: CredentialManager,
+    private val credentialManager: CredentialManager,
+    private val firebaseRepository: FirebaseAuthRepository
 ) : ViewModel() {
 
-    private val auth : FirebaseAuth = FirebaseAuth.getInstance()
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState
@@ -36,7 +36,7 @@ class AuthViewModel(
     }
 
     fun checkAuthStatus(){
-        if(auth.currentUser==null){
+        if(firebaseRepository.getCurrentUser() == null){
             _authState.value = AuthState.Unauthenticated
         }else{
             _authState.value = AuthState.Authenticated
@@ -53,7 +53,7 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
 
         try{
-            auth.signInWithEmailAndPassword(email,password).await()
+            firebaseRepository.login(email,password).await()
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
@@ -69,7 +69,7 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
 
         try{
-            auth.createUserWithEmailAndPassword(email,password).await()
+            firebaseRepository.register(email,password).await()
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
@@ -112,9 +112,9 @@ class AuthViewModel(
 
                 val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
 
-                auth.signInWithCredential(firebaseCredential).await()
+                firebaseRepository.loginWithGoogle(firebaseCredential).await()
 
-                return auth.currentUser
+                return firebaseRepository.getCurrentUser()
             } else {
                 throw Exception("Credential is not of type Google ID!")
             }
@@ -129,7 +129,7 @@ class AuthViewModel(
     }
 
     fun logout(){
-        auth.signOut()
+        firebaseRepository.logout()
         _authState.value = AuthState.Unauthenticated
 
         viewModelScope.launch {

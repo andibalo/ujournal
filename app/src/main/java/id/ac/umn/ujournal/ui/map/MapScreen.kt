@@ -41,7 +41,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import id.ac.umn.ujournal.model.JournalEntry
+import id.ac.umn.ujournal.data.model.JournalEntry
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
 import id.ac.umn.ujournal.ui.util.ddMMMMyyyyDateTimeFormatter
 import id.ac.umn.ujournal.viewmodel.JournalEntryViewModel

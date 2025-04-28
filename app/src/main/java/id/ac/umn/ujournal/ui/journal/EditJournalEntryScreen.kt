@@ -21,7 +21,6 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
-import id.ac.umn.ujournal.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
 import id.ac.umn.ujournal.ui.components.common.MediaActions
@@ -40,7 +39,6 @@ import io.konform.validation.constraints.maxLength
 import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
-import com.google.firebase.storage.storage
 import id.ac.umn.ujournal.R
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,6 +46,7 @@ import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import id.ac.umn.ujournal.ui.util.getFileExtension
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -84,6 +83,7 @@ fun EditJournalEntryScreen(
     var entryBody by rememberSaveable { mutableStateOf(journalEntry.description) }
     var entryBodyInputErrMsg by remember { mutableStateOf("") }
     var photoUri by rememberSaveable { mutableStateOf(journalEntry.imageURI?.let { Uri.parse(it) }) }
+    var newPhotoUri : Uri? by rememberSaveable { mutableStateOf(null)}
     var latitude by rememberSaveable { mutableStateOf(journalEntry.latitude) }
     var longitude by rememberSaveable { mutableStateOf(journalEntry.longitude) }
     var createdAt by rememberSaveable { mutableStateOf(journalEntry.createdAt) }
@@ -144,16 +144,19 @@ fun EditJournalEntryScreen(
             return
         }
 
-        if (photoUri != null) {
+        if (newPhotoUri != null) {
             val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
-            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
-            val uploadTask = ref.putFile(photoUri!!)
+            val ext = newPhotoUri!!.getFileExtension(context)
+            val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+            val ref = storageRef.child("journal_images/${fileName}")
+
+            val uploadTask = ref.putFile(newPhotoUri!!)
 
             uploadTask.addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener { uri ->
                     val downloadUrl = uri.toString()
-                    journalEntryViewModel.update(
+                    journalEntryViewModel.updateJournalEntry(
                         journalEntryID = journalEntry.id.toString(),
                         newTitle = entryTitle,
                         newDescription = entryBody,
@@ -164,15 +167,17 @@ fun EditJournalEntryScreen(
                         newDate = createdAt
                     )
 
-                    journalEntryViewModel.addJournalEntry(journalEntry)
-
                     onBackButtonClick()
                 }
             }.addOnFailureListener { exception ->
                 Log.e("Upload", "Upload failed: ${exception.message}")
+                snackbar.showMessage(
+                    message = exception.message ?: "Upload failed: ${exception.message}",
+                    severity = Severity.ERROR
+                )
             }
         } else {
-            journalEntryViewModel.update(
+            journalEntryViewModel.updateJournalEntry(
                 journalEntryID = journalEntry.id.toString(),
                 newTitle = entryTitle,
                 newDescription = entryBody,
@@ -182,8 +187,6 @@ fun EditJournalEntryScreen(
                 updatedAt = LocalDateTime.now(),
                 newDate = createdAt
             )
-
-            journalEntryViewModel.addJournalEntry(journalEntry)
 
             onBackButtonClick()
         }
@@ -272,9 +275,9 @@ fun EditJournalEntryScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            if (photoUri != null) {
+            if (photoUri != null || newPhotoUri != null) {
                 AsyncImage(
-                    model = photoUri,
+                    model = if (newPhotoUri != null) newPhotoUri else photoUri,
                     modifier = Modifier.fillMaxWidth().height(
                         when(
                             adaptiveInfo.windowSizeClass.windowWidthSizeClass
@@ -389,11 +392,11 @@ fun EditJournalEntryScreen(
                 ) {
                     MediaActions(
                         onSuccessTakePicture = {
-                            photoUri = it
+                            newPhotoUri = it
                             hideBottomSheet()
                         },
                         onSuccessChooseFromGallery = {
-                            photoUri = it
+                            newPhotoUri = it
                             hideBottomSheet()
                         }
                     )

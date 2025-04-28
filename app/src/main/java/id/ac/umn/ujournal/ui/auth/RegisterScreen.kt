@@ -36,7 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.umn.ujournal.R
-import id.ac.umn.ujournal.model.User
+import id.ac.umn.ujournal.data.model.User
 import id.ac.umn.ujournal.ui.components.common.DividerText
 import id.ac.umn.ujournal.ui.components.common.GoogleAuthButton
 import id.ac.umn.ujournal.ui.components.common.OutlinedPasswordTextField
@@ -161,23 +161,25 @@ fun RegisterScreen(
             try {
                 authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
 
-                userViewModel.createUser(User(
-                    id = UUID.randomUUID(),
-                    firstName = firstNameInput.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(
-                            Locale.getDefault()
-                        ) else it.toString()
-                    },
-                    lastName = lastNameInput.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(
-                            Locale.getDefault()
-                        ) else it.toString()
-                    },
-                    email = emailInput,
-                    profileImageURL = null,
-                    provider =  null,
-                    password = confirmPasswordInput,
-                ))
+                userViewModel.createUser(
+                    User(
+                        id = UUID.randomUUID(),
+                        firstName = firstNameInput.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.getDefault()
+                            ) else it.toString()
+                        },
+                        lastName = lastNameInput.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.getDefault()
+                            ) else it.toString()
+                        },
+                        email = emailInput,
+                        profileImageURL = null,
+                        provider =  null,
+                        password = confirmPasswordInput,
+                    )
+                )
 
                 authViewModel.setAuthStatus(true)
 

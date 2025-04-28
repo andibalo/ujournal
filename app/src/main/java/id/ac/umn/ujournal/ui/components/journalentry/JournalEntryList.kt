@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import id.ac.umn.ujournal.model.JournalEntry
+import id.ac.umn.ujournal.data.model.JournalEntry
 
 @Composable
 fun JournalEntryList(

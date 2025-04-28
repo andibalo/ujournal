@@ -1,4 +1,4 @@
-package id.ac.umn.ujournal.model
+package id.ac.umn.ujournal.data.model
 
 import java.util.UUID
 

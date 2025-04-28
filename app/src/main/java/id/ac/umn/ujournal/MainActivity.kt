@@ -10,12 +10,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import id.ac.umn.ujournal.data.repository.FirebaseAuthRepository
+import id.ac.umn.ujournal.data.repository.FirebaseAuthRepositoryImpl
 import id.ac.umn.ujournal.ui.components.common.navigation.UJournalNavigationWrapper
 import id.ac.umn.ujournal.ui.navigation.UJournalNavHost
 import id.ac.umn.ujournal.ui.theme.UJournalTheme
@@ -31,11 +33,17 @@ class MainActivity : ComponentActivity() {
         val context: Context = applicationContext
 
         setContent {
+
+            val firebaseRepo : FirebaseAuthRepository = FirebaseAuthRepositoryImpl(auth = FirebaseAuth.getInstance())
+
             val themeViewModel: ThemeViewModel = viewModel()
             val journalEntryViewModel: JournalEntryViewModel = viewModel()
             val userViewModel: UserViewModel = viewModel()
 
-            val authViewModel = AuthViewModel(credentialManager = CredentialManager.create(context))
+            val authViewModel = AuthViewModel(
+                credentialManager = CredentialManager.create(context),
+                firebaseRepository = firebaseRepo
+            )
 
             UJournalTheme(
                 themeViewModel = themeViewModel

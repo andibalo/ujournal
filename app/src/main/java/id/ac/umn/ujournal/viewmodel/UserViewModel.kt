@@ -3,7 +3,7 @@ package id.ac.umn.ujournal.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import id.ac.umn.ujournal.model.User
+import id.ac.umn.ujournal.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -47,10 +47,6 @@ class UserViewModel : ViewModel() {
 
     fun updateUserData(user: User) {
         Log.d("UserViewModel", "Updating user data dummy: $user")
-
-        _userState.update {
-            UserState.Loading
-        }
 
         _userDummyData.update {
            user

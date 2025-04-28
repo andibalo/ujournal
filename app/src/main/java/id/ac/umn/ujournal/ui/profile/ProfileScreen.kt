@@ -28,10 +28,7 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +46,7 @@ import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import id.ac.umn.ujournal.ui.util.getFileExtension
 import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
@@ -71,9 +69,6 @@ fun ProfileScreen(
     val themeState by themeViewModel.themeMode.collectAsState()
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
-
-
-    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
@@ -101,7 +96,10 @@ fun ProfileScreen(
 
     fun uploadProfileImage(it: Uri) {
         val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
-        val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
+
+        val ext = it.getFileExtension(context)
+        val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+        val ref = storageRef.child("profile_picture/${fileName}")
 
         val uploadTask = ref.putFile(it)
 
@@ -109,8 +107,9 @@ fun ProfileScreen(
             ref.downloadUrl.addOnSuccessListener { uri ->
                 val downloadUrl = uri.toString()
 
-                user.profileImageURL = downloadUrl
-                userViewModel.updateUserData(user)
+                val updatedUser = user.copy(profileImageURL = downloadUrl)
+
+                userViewModel.updateUserData(updatedUser)
 
                 hideBottomSheet()
             }

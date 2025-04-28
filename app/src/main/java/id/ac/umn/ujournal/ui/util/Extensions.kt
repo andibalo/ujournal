@@ -1,5 +1,8 @@
 package id.ac.umn.ujournal.ui.util
 
+import android.content.Context
+import android.net.Uri
+import android.webkit.MimeTypeMap
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -38,3 +41,7 @@ fun WindowSizeClass.isCompact() =
     windowWidthSizeClass == WindowWidthSizeClass.COMPACT ||
             windowHeightSizeClass == WindowHeightSizeClass.COMPACT
 
+fun Uri.getFileExtension(context: Context): String? {
+    val fileType: String? = context.contentResolver.getType(this)
+    return MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType)
+}
