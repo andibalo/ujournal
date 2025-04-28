@@ -26,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -67,9 +69,18 @@ import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
 import java.util.UUID
 
 data class CreateJournalInput(
@@ -82,6 +93,7 @@ data class CreateJournalInput(
 fun CreateJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -104,10 +116,13 @@ fun CreateJournalEntryScreen(
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+    val snackbar = SnackbarController.current
+    val context = LocalContext.current
+    val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
+    val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
-    val storage = Firebase.storage("gs://ujournal-7ec75.firebasestorage.app")
-    val storageRef = storage.reference
+
 
     val validateCreateJournalInput = Validation {
         CreateJournalInput::entryTitle {
@@ -153,7 +168,8 @@ fun CreateJournalEntryScreen(
         }
 
         if (photoUri != null) {
-            val ref = storageRef.child("journal_images/${UUID.randomUUID()}.jpg") // Use a unique file name for each upload
+            val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
             val uploadTask = ref.putFile(photoUri!!)
 
@@ -177,6 +193,10 @@ fun CreateJournalEntryScreen(
                 }
             }.addOnFailureListener { exception ->
                 Log.e("Upload", "Upload failed: ${exception.message}")
+                snackbar.showMessage(
+                    message = exception.message ?: "Upload failed: ${exception.message}",
+                    severity = Severity.ERROR
+                )
             }
         } else {
             val journalEntry = JournalEntry(
@@ -213,6 +233,13 @@ fun CreateJournalEntryScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        },
         topBar = {
             UJournalTopAppBar(
                 title = {

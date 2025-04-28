@@ -41,9 +41,18 @@ import io.konform.validation.constraints.notBlank
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import com.google.firebase.storage.storage
+import id.ac.umn.ujournal.R
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
+import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Date
 import java.util.UUID
 
 data class EditJournalInput(
@@ -57,6 +66,7 @@ fun EditJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
     journalEntryID: String?,
     onBackButtonClick: () -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     if (journalEntryID == null) {
         onBackButtonClick()
@@ -84,7 +94,9 @@ fun EditJournalEntryScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
-    val storage = Firebase.storage("gs://ujournal-7ec75.firebasestorage.app")
+    val context = LocalContext.current
+    val snackbar = SnackbarController.current
+    val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
     val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
@@ -133,7 +145,8 @@ fun EditJournalEntryScreen(
         }
 
         if (photoUri != null) {
-            val ref = storageRef.child("journal_images/${UUID.randomUUID()}.jpg") // Use a unique file name for each upload
+            val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+            val ref = storageRef.child("journal_images/${UUID.randomUUID()}_${currentDate}_${photoUri!!.lastPathSegment}")
 
             val uploadTask = ref.putFile(photoUri!!)
 
@@ -220,6 +233,13 @@ fun EditJournalEntryScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { snackBarData ->
+                val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
+
+                UJournalSnackBar(snackbarData = snackBarData, severity = sbData.severity)
+            }
+        },
         topBar = {
             UJournalTopAppBar(
                 title = { Text(text = "Edit Journal") },

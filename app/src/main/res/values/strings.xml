@@ -8,4 +8,5 @@
     <string name="login_screen">Login</string>
     <string name="register_screen">Register</string>
     <string name="default_web_client_id">741744682924-kntjn0puaidr3tubn495j3aqqa9lgefo.apps.googleusercontent.com</string>
+    <string name = "firebase_bucket_url">gs://ujournal-7ec75.firebasestorage.app""gs://ujournal-7ec75.firebasestorage.app</string>
 </resources>
