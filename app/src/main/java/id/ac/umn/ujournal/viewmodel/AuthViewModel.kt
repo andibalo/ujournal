@@ -4,16 +4,12 @@ import android.content.Context
 import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
 import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.data.repository.FirebaseAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -106,19 +102,9 @@ class AuthViewModel(
 
             val credential = result.credential
 
-            if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                // Create Google ID Token
-                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+            firebaseRepository.loginWithGoogle(credential).await()
 
-                val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
-
-                firebaseRepository.loginWithGoogle(firebaseCredential).await()
-
-                return firebaseRepository.getCurrentUser()
-            } else {
-                throw Exception("Credential is not of type Google ID!")
-            }
-
+            return firebaseRepository.getCurrentUser()
         } catch (e : Exception) {
             Log.d("AuthViewModel", e.toString())
 

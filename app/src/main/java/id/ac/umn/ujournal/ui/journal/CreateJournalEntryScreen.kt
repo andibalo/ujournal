@@ -3,6 +3,7 @@ package id.ac.umn.ujournal.ui.journal
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -96,6 +99,7 @@ fun CreateJournalEntryScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
     var entryTitleInputErrMsg by remember { mutableStateOf("") }
@@ -120,7 +124,6 @@ fun CreateJournalEntryScreen(
     val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
-
 
     val validateCreateJournalInput = Validation {
         CreateJournalInput::entryTitle {
@@ -165,12 +168,14 @@ fun CreateJournalEntryScreen(
             return
         }
 
+        isLoading = true
+
         if (photoUri != null) {
             val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
 
             val ext = photoUri!!.getFileExtension(context)
             val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-            val ref = storageRef.child("journal_images/${fileName}")
+            val ref = storageRef.child("${context.getString(R.string.journal_image_bucket_folder)}/${fileName}")
 
             val uploadTask = ref.putFile(photoUri!!)
 
@@ -190,9 +195,12 @@ fun CreateJournalEntryScreen(
 
                     journalEntryViewModel.addJournalEntry(journalEntry)
 
+                    isLoading = false
+
                     onBackButtonClick()
                 }
             }.addOnFailureListener { exception ->
+                isLoading = false
                 Log.e("Upload", "Upload failed: ${exception.message}")
                 snackbar.showMessage(
                     message = exception.message ?: "Upload failed: ${exception.message}",
@@ -212,6 +220,8 @@ fun CreateJournalEntryScreen(
             )
 
             journalEntryViewModel.addJournalEntry(journalEntry)
+
+            isLoading = false
 
             onBackButtonClick()
         }
@@ -233,7 +243,9 @@ fun CreateJournalEntryScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { snackBarData ->
                 val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
@@ -248,18 +260,34 @@ fun CreateJournalEntryScreen(
                         text = "Create Journal",
                     )
                 },
-                onBackButtonClick = onBackButtonClick,
+                onBackButtonClick = {
+                    if(!isLoading){
+                        onBackButtonClick()
+                    }
+                },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            onSubmitClick()
+                    if(isLoading){
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .size(26.dp)
+                        ){
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.surface
+                            )
                         }
-                    ) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Create journal entry",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
+                    } else {
+                        IconButton(
+                            onClick = {
+                                onSubmitClick()
+                            }
+                        ) {
+                            Icon(
+                                Icons.Filled.Done,
+                                contentDescription = "Create journal entry",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             )
@@ -285,15 +313,17 @@ fun CreateJournalEntryScreen(
             if (photoUri != null) {
                 AsyncImage(
                     model = photoUri,
-                    modifier = Modifier.fillMaxWidth().height(
-                        when(
-                            adaptiveInfo.windowSizeClass.windowWidthSizeClass
-                        ) {
-                            WindowWidthSizeClass.MEDIUM -> 350.dp
-                            WindowWidthSizeClass.EXPANDED -> 350.dp
-                            else -> 250.dp
-                        }
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(
+                            when (
+                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                            ) {
+                                WindowWidthSizeClass.MEDIUM -> 350.dp
+                                WindowWidthSizeClass.EXPANDED -> 350.dp
+                                else -> 250.dp
+                            }
+                        ),
                     contentDescription = "Journal Entry Photo",
                     contentScale = ContentScale.Crop
                 )

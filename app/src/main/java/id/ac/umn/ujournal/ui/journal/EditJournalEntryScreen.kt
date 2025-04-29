@@ -78,6 +78,7 @@ fun EditJournalEntryScreen(
         return
     }
 
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     var entryTitle by rememberSaveable { mutableStateOf(journalEntry.title) }
     var entryTitleInputErrMsg by remember { mutableStateOf("") }
     var entryBody by rememberSaveable { mutableStateOf(journalEntry.description) }
@@ -144,12 +145,14 @@ fun EditJournalEntryScreen(
             return
         }
 
+        isLoading = true
+
         if (newPhotoUri != null) {
             val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
 
             val ext = newPhotoUri!!.getFileExtension(context)
             val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-            val ref = storageRef.child("journal_images/${fileName}")
+            val ref = storageRef.child("${context.getString(R.string.journal_image_bucket_folder)}/${fileName}")
 
             val uploadTask = ref.putFile(newPhotoUri!!)
 
@@ -167,9 +170,11 @@ fun EditJournalEntryScreen(
                         newDate = createdAt
                     )
 
+                    isLoading = false
                     onBackButtonClick()
                 }
             }.addOnFailureListener { exception ->
+                isLoading = false
                 Log.e("Upload", "Upload failed: ${exception.message}")
                 snackbar.showMessage(
                     message = exception.message ?: "Upload failed: ${exception.message}",
@@ -187,6 +192,8 @@ fun EditJournalEntryScreen(
                 updatedAt = LocalDateTime.now(),
                 newDate = createdAt
             )
+
+            isLoading = false
 
             onBackButtonClick()
         }
@@ -235,7 +242,9 @@ fun EditJournalEntryScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { snackBarData ->
                 val sbData = (snackBarData.visuals as UJournalSnackBarVisuals)
@@ -246,14 +255,30 @@ fun EditJournalEntryScreen(
         topBar = {
             UJournalTopAppBar(
                 title = { Text(text = "Edit Journal") },
-                onBackButtonClick = onBackButtonClick,
+                onBackButtonClick = {
+                    if(!isLoading){
+                        onBackButtonClick()
+                    }
+                },
                 actions = {
-                    IconButton(onClick = { onSubmitClick() }) {
-                        Icon(
-                            Icons.Filled.Done,
-                            contentDescription = "Save changes",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
+                    if(isLoading){
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .size(26.dp)
+                        ){
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.surface
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { onSubmitClick() }) {
+                            Icon(
+                                Icons.Filled.Done,
+                                contentDescription = "Save changes",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             )
@@ -278,15 +303,17 @@ fun EditJournalEntryScreen(
             if (photoUri != null || newPhotoUri != null) {
                 AsyncImage(
                     model = if (newPhotoUri != null) newPhotoUri else photoUri,
-                    modifier = Modifier.fillMaxWidth().height(
-                        when(
-                            adaptiveInfo.windowSizeClass.windowWidthSizeClass
-                        ) {
-                            WindowWidthSizeClass.MEDIUM -> 350.dp
-                            WindowWidthSizeClass.EXPANDED -> 350.dp
-                            else -> 250.dp
-                        }
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(
+                            when (
+                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                            ) {
+                                WindowWidthSizeClass.MEDIUM -> 350.dp
+                                WindowWidthSizeClass.EXPANDED -> 350.dp
+                                else -> 250.dp
+                            }
+                        ),
                     contentDescription = "Journal Entry Photo",
                     contentScale = ContentScale.Crop
                 )

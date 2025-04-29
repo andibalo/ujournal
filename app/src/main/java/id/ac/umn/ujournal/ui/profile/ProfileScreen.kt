@@ -42,11 +42,15 @@ import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.ui.util.getFileExtension
+import id.ac.umn.ujournal.ui.util.shimmerLoading
 import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
@@ -69,6 +73,7 @@ fun ProfileScreen(
     val themeState by themeViewModel.themeMode.collectAsState()
     val userState by userViewModel.userState.collectAsState()
     val user = (userState as UserState.Success).user
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
@@ -99,10 +104,11 @@ fun ProfileScreen(
 
         val ext = it.getFileExtension(context)
         val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-        val ref = storageRef.child("profile_picture/${fileName}")
+        val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
 
         val uploadTask = ref.putFile(it)
 
+        isLoading = true
         uploadTask.addOnSuccessListener {
             ref.downloadUrl.addOnSuccessListener { uri ->
                 val downloadUrl = uri.toString()
@@ -111,9 +117,11 @@ fun ProfileScreen(
 
                 userViewModel.updateUserData(updatedUser)
 
+                isLoading = false
                 hideBottomSheet()
             }
         }.addOnFailureListener { exception ->
+            isLoading = false
             Log.e("Upload", "Upload failed: ${exception.message}")
             snackbar.showMessage(
                 message = exception.message ?: "Upload failed: ${exception.message}",
@@ -159,18 +167,30 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier.padding(30.dp)
                 ) {
-                    AsyncImage(
-                        model = user.profileImageURL ?: R.drawable.default_profile_picture,
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .size(120.dp)
-                            .clickable {
-                                showBottomSheet()
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-
+                    if(isLoading){
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(120.dp)
+                                .clickable {
+                                    showBottomSheet()
+                                }
+                                .shimmerLoading()
+                            ,
+                        )
+                    } else {
+                        AsyncImage(
+                            model = user.profileImageURL ?: R.drawable.default_profile_picture,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(120.dp)
+                                .clickable {
+                                    showBottomSheet()
+                                },
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
             Column(
