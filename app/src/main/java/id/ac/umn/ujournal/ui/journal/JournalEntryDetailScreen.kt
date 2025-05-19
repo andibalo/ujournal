@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
+import com.google.firebase.auth.FirebaseAuth
 import id.ac.umn.ujournal.R
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import id.ac.umn.ujournal.ui.util.HourTimeFormatter24
@@ -41,6 +42,7 @@ fun JournalEntryDetailScreen(
     val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    val userUuid = FirebaseAuth.getInstance().currentUser?.uid
 
     if (journalEntry == null) {
         onBackButtonClick()
@@ -158,6 +160,7 @@ fun JournalEntryDetailScreen(
                 TextButton(
                     onClick = {
                         journalEntryViewModel.remove(journalEntryID)
+                        journalEntryViewModel.deleteJournalEntryFromFirestore(userUuid.toString(), journalEntryID)
                         showDeleteDialog = false
                         onBackButtonClick()
                     }
@@ -178,5 +181,4 @@ fun JournalEntryDetailScreen(
             }
         )
     }
-
 }

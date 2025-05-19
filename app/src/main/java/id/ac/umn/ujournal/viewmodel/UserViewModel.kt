@@ -3,6 +3,8 @@ package id.ac.umn.ujournal.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import id.ac.umn.ujournal.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +28,7 @@ class UserViewModel : ViewModel() {
     // TODO: remove user dummy data
     private val _userDummyData = MutableStateFlow<User?>(generateInitialUser())
 
+    val firestore = FirebaseFirestore.getInstance()
     private val _userState = MutableStateFlow<UserState>(UserState.Loading)
     val userState: StateFlow<UserState> get() = _userState
 
@@ -56,6 +59,24 @@ class UserViewModel : ViewModel() {
             UserState.Success(user)
         }
     }
+
+    fun updateProfileImageUrlInFirestore(userUuid: String, profileImageURL: String) {
+        val dataRef = firestore.collection("profiles")
+            .document("users")
+            .collection(userUuid)
+            .document("data")
+
+        val data = mapOf("profileImageURL" to profileImageURL)
+
+        dataRef.set(data, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("Firestore", "Profile image URL updated successfully")
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Firestore", "Failed to update profile image URL", exception)
+            }
+    }
+
 
     private suspend fun fetchUserFromRemote(): User? {
         kotlinx.coroutines.delay(1000)

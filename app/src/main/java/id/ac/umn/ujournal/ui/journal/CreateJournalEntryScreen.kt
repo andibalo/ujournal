@@ -51,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImage
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import id.ac.umn.ujournal.data.model.JournalEntry
 import id.ac.umn.ujournal.ui.components.common.DatePickerModal
 import id.ac.umn.ujournal.ui.components.common.LocationPicker
@@ -122,6 +123,8 @@ fun CreateJournalEntryScreen(
     val context = LocalContext.current
     val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
     val storageRef = storage.reference
+    val userUuid = FirebaseAuth.getInstance().currentUser?.uid
+
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -151,7 +154,7 @@ fun CreateJournalEntryScreen(
         }
     }
 
-    fun onSubmitClick() {
+    fun onSubmitClick(userUuid: String) {
         val validationResult = validateCreateJournalInput(CreateJournalInput(entryTitle, entryBody))
 
         if (!validationResult.isValid) {
@@ -194,6 +197,7 @@ fun CreateJournalEntryScreen(
                     )
 
                     journalEntryViewModel.addJournalEntry(journalEntry)
+                    journalEntryViewModel.saveJournalEntryToFirestore(userUuid, journalEntry)
 
                     isLoading = false
 
@@ -220,6 +224,7 @@ fun CreateJournalEntryScreen(
             )
 
             journalEntryViewModel.addJournalEntry(journalEntry)
+            journalEntryViewModel.saveJournalEntryToFirestore(userUuid, journalEntry)
 
             isLoading = false
 
@@ -279,7 +284,7 @@ fun CreateJournalEntryScreen(
                     } else {
                         IconButton(
                             onClick = {
-                                onSubmitClick()
+                                onSubmitClick(userUuid.toString())
                             }
                         ) {
                             Icon(

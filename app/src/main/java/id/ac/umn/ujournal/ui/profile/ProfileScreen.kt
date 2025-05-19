@@ -45,6 +45,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.google.firebase.auth.FirebaseAuth
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
@@ -81,6 +82,7 @@ fun ProfileScreen(
     val snackbar = SnackbarController.current
     val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
     val storageRef = storage.reference
+    val userUuid = FirebaseAuth.getInstance().currentUser?.uid
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -103,7 +105,7 @@ fun ProfileScreen(
         val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
 
         val ext = it.getFileExtension(context)
-        val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+        val fileName = "${userUuid}_${currentDate}.${ext}"
         val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
 
         val uploadTask = ref.putFile(it)
@@ -116,6 +118,7 @@ fun ProfileScreen(
                 val updatedUser = user.copy(profileImageURL = downloadUrl)
 
                 userViewModel.updateUserData(updatedUser)
+                userViewModel.updateProfileImageUrlInFirestore(userUuid.toString(), downloadUrl)
 
                 isLoading = false
                 hideBottomSheet()

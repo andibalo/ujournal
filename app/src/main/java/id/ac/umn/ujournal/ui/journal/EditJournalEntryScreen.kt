@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import id.ac.umn.ujournal.R
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import com.google.firebase.auth.FirebaseAuth
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
@@ -99,6 +100,7 @@ fun EditJournalEntryScreen(
     val snackbar = SnackbarController.current
     val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
     val storageRef = storage.reference
+    val userUuid = FirebaseAuth.getInstance().currentUser?.uid
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -170,6 +172,18 @@ fun EditJournalEntryScreen(
                         newDate = createdAt
                     )
 
+                    journalEntryViewModel.updateJournalEntryInFirestore(
+                        userUuid.toString(),
+                        journalEntryID = journalEntry.id.toString(),
+                        newTitle = entryTitle,
+                        newDescription = entryBody,
+                        newImageURI = downloadUrl,
+                        newLatitude = latitude,
+                        newLongitude = longitude,
+                        updatedAt = LocalDateTime.now(),
+                        newDate = createdAt
+                    )
+
                     isLoading = false
                     onBackButtonClick()
                 }
@@ -183,6 +197,18 @@ fun EditJournalEntryScreen(
             }
         } else {
             journalEntryViewModel.updateJournalEntry(
+                journalEntryID = journalEntry.id.toString(),
+                newTitle = entryTitle,
+                newDescription = entryBody,
+                newImageURI = null,
+                newLatitude = latitude,
+                newLongitude = longitude,
+                updatedAt = LocalDateTime.now(),
+                newDate = createdAt
+            )
+
+            journalEntryViewModel.updateJournalEntryInFirestore(
+                userUuid.toString(),
                 journalEntryID = journalEntry.id.toString(),
                 newTitle = entryTitle,
                 newDescription = entryBody,

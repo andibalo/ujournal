@@ -54,7 +54,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("com.google.firebase:firebase-storage")
     implementation("androidx.compose.material3.adaptive:adaptive:1.2.0-alpha02")
     implementation("androidx.compose.material3.adaptive:adaptive-layout:1.2.0-alpha02")
     implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.2.0-alpha02")
@@ -70,6 +69,8 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
