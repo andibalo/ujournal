@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import id.ac.umn.ujournal.data.model.JournalEntry
 import id.ac.umn.ujournal.data.model.User
@@ -40,7 +41,7 @@ class FirebaseRepositoryImpl(
         return auth.signInWithCredential(googleCredential)
     }
 
-    override suspend fun saveJournalEntry(journalEntry: JournalEntry): Task<DocumentReference> {
+    override suspend fun saveJournalEntry(journalEntry: JournalEntry): Task<Void> {
         val journalEntryData = hashMapOf(
             "title" to journalEntry.title,
             "description" to journalEntry.description,
@@ -52,10 +53,18 @@ class FirebaseRepositoryImpl(
 
         return db
                 .collection("journalEntries")
-                .add(journalEntryData)
+                .document(journalEntry.id)
+                .set(journalEntryData)
     }
 
-    override suspend fun saveUser(user: User): Task<DocumentReference> {
+    override suspend fun getUser(userID: String): Task<DocumentSnapshot> {
+        return db
+                .collection("users")
+                .document(userID)
+                .get()
+    }
+
+    override suspend fun saveUser(user: User): Task<Void> {
         val userData = hashMapOf(
             "firstName" to user.firstName,
             "lastName" to user.lastName,
@@ -66,7 +75,8 @@ class FirebaseRepositoryImpl(
 
         return db
             .collection("users")
-            .add(userData)
+            .document(user.id)
+            .set(userData)
     }
 
 

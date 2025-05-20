@@ -100,7 +100,7 @@ class JournalEntryViewModel : ViewModel() {
 }
 
 fun createTestJournalEntry(
-    id: UUID = UUID.randomUUID(),
+    id: String = UUID.randomUUID().toString(),
     title: String = "Test Journal Entry",
     description: String = "This is a test journal entry.",
     picture: String = "https://picsum.photos/300",

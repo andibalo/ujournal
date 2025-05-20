@@ -42,7 +42,9 @@ class MainActivity : ComponentActivity() {
 
             val themeViewModel: ThemeViewModel = viewModel()
             val journalEntryViewModel: JournalEntryViewModel = viewModel()
-            val userViewModel: UserViewModel = viewModel()
+            val userViewModel =  UserViewModel(
+                firebaseRepository = firebaseRepo
+            )
 
             val authViewModel = AuthViewModel(
                 credentialManager = CredentialManager.create(context),

@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class JournalEntry(
-    val id: UUID,
-    var userID: UUID?, // TODO: make required
+    val id: String,
+    var userID: String?, // TODO: make required
     var title: String,
     var description: String,
     var imageURI: String?,

@@ -183,7 +183,7 @@ fun CreateJournalEntryScreen(
                 ref.downloadUrl.addOnSuccessListener { uri ->
                     val downloadUrl = uri.toString()
                     val journalEntry = JournalEntry(
-                        id = UUID.randomUUID(),
+                        id = UUID.randomUUID().toString(),
                         title = entryTitle,
                         description = entryBody,
                         imageURI = downloadUrl,
@@ -210,7 +210,7 @@ fun CreateJournalEntryScreen(
             }
         } else {
             val journalEntry = JournalEntry(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 title = entryTitle,
                 description = entryBody,
                 imageURI = null,

@@ -1,9 +1,7 @@
 package id.ac.umn.ujournal.data.model
 
-import java.util.UUID
-
 data class User(
-    val id: UUID,
+    val id: String,
     var firstName: String,
     var lastName: String?,
     val email: String,

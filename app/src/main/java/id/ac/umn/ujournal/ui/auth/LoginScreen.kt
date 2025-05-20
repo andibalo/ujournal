@@ -115,8 +115,14 @@ fun LoginScreen(
 
         scope.launch {
             try {
-                authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
-                userViewModel.findAndSetUserData(email = emailInput)
+                val userAuth = authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
+
+                if (userAuth == null){
+                    throw Exception("User data is null")
+                }
+
+                userViewModel.fetchUserFromFirebase(userAuth.uid)
+
                 authViewModel.setAuthStatus(true)
                 navigateToHomeScreen()
             }catch (e: Exception){
