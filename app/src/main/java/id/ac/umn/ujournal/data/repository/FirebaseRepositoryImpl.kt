@@ -9,10 +9,16 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import id.ac.umn.ujournal.data.model.JournalEntry
+import id.ac.umn.ujournal.data.model.User
 
-class FirebaseAuthRepositoryImpl(
-    private val auth: FirebaseAuth
-): FirebaseAuthRepository {
+class FirebaseRepositoryImpl(
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
+
+): FirebaseRepository {
 
     override suspend fun login(email: String, password: String): Task<AuthResult> {
         return auth.signInWithEmailAndPassword(email, password)
@@ -33,6 +39,36 @@ class FirebaseAuthRepositoryImpl(
 
         return auth.signInWithCredential(googleCredential)
     }
+
+    override suspend fun saveJournalEntry(journalEntry: JournalEntry): Task<DocumentReference> {
+        val journalEntryData = hashMapOf(
+            "title" to journalEntry.title,
+            "description" to journalEntry.description,
+            "imageURI" to journalEntry.imageURI,
+            "latitude" to journalEntry.latitude,
+            "longitude" to journalEntry.longitude,
+            "createdAt" to journalEntry.createdAt,
+        )
+
+        return db
+                .collection("journalEntries")
+                .add(journalEntryData)
+    }
+
+    override suspend fun saveUser(user: User): Task<DocumentReference> {
+        val userData = hashMapOf(
+            "firstName" to user.firstName,
+            "lastName" to user.lastName,
+            "email" to user.email,
+            "profileImageURL" to user.profileImageURL,
+            "provider" to user.provider,
+        )
+
+        return db
+            .collection("users")
+            .add(userData)
+    }
+
 
     override fun logout() {
         return auth.signOut()

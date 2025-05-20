@@ -16,8 +16,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import id.ac.umn.ujournal.data.repository.FirebaseAuthRepository
-import id.ac.umn.ujournal.data.repository.FirebaseAuthRepositoryImpl
+import com.google.firebase.firestore.FirebaseFirestore
+import id.ac.umn.ujournal.data.repository.FirebaseRepository
+import id.ac.umn.ujournal.data.repository.FirebaseRepositoryImpl
 import id.ac.umn.ujournal.ui.components.common.navigation.UJournalNavigationWrapper
 import id.ac.umn.ujournal.ui.navigation.UJournalNavHost
 import id.ac.umn.ujournal.ui.theme.UJournalTheme
@@ -34,7 +35,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            val firebaseRepo : FirebaseAuthRepository = FirebaseAuthRepositoryImpl(auth = FirebaseAuth.getInstance())
+            val firebaseRepo : FirebaseRepository = FirebaseRepositoryImpl(
+                auth = FirebaseAuth.getInstance(),
+                db =  FirebaseFirestore.getInstance()
+            )
 
             val themeViewModel: ThemeViewModel = viewModel()
             val journalEntryViewModel: JournalEntryViewModel = viewModel()

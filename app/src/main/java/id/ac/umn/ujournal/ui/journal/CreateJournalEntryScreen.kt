@@ -190,7 +190,8 @@ fun CreateJournalEntryScreen(
                         latitude = latitude,
                         longitude = longitude,
                         createdAt = entryDate,
-                        updatedAt = null
+                        updatedAt = null,
+                        userID = null
                     )
 
                     journalEntryViewModel.addJournalEntry(journalEntry)
@@ -216,7 +217,8 @@ fun CreateJournalEntryScreen(
                 latitude = latitude,
                 longitude = longitude,
                 createdAt = entryDate,
-                updatedAt = null
+                updatedAt = null,
+                userID = null
             )
 
             journalEntryViewModel.addJournalEntry(journalEntry)

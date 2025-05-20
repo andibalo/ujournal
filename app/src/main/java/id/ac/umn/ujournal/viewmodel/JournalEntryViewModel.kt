@@ -117,7 +117,8 @@ fun createTestJournalEntry(
         latitude = latitude,
         longitude = longitude,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        userID = null
     )
 }
 

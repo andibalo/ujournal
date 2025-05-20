@@ -1,13 +1,16 @@
 package id.ac.umn.ujournal.viewmodel
 
 import android.util.Log
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.ac.umn.ujournal.data.model.User
+import id.ac.umn.ujournal.data.repository.FirebaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 sealed class UserState {
@@ -16,7 +19,9 @@ sealed class UserState {
     data class Error(val message: String) : UserState()
 }
 
-class UserViewModel : ViewModel() {
+class UserViewModel(
+    private val firebaseRepository: FirebaseRepository
+) : ViewModel() {
 
     // TODO: remove _users after backend integration
     private val _users  = MutableStateFlow(getInitialUserListData())
@@ -56,6 +61,24 @@ class UserViewModel : ViewModel() {
             UserState.Success(user)
         }
     }
+
+    suspend fun saveUserToFirestore(user : User){
+
+        _userState.value = UserState.Loading
+
+        try{
+            firebaseRepository.saveUser(user).await()
+
+            this.updateUserData(user)
+
+            _userState.value = UserState.Success(user)
+
+        } catch (e:Exception){
+            _userState.value = UserState.Error("Failed to save user")
+            throw Exception(e.message?:"Something went wrong")
+        }
+    }
+
 
     private suspend fun fetchUserFromRemote(): User? {
         kotlinx.coroutines.delay(1000)

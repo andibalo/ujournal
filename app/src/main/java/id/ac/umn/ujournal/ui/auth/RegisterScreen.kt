@@ -161,24 +161,31 @@ fun RegisterScreen(
             try {
                 authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
 
-                userViewModel.createUser(
-                    User(
-                        id = UUID.randomUUID(),
-                        firstName = firstNameInput.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase(
-                                Locale.getDefault()
-                            ) else it.toString()
-                        },
-                        lastName = lastNameInput.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase(
-                                Locale.getDefault()
-                            ) else it.toString()
-                        },
-                        email = emailInput,
-                        profileImageURL = null,
-                        provider =  null,
-                        password = confirmPasswordInput,
-                    )
+                val user =   User(
+                    id = UUID.randomUUID(),
+                    firstName = firstNameInput.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    },
+                    lastName = lastNameInput.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.getDefault()
+                        ) else it.toString()
+                    },
+                    email = emailInput,
+                    profileImageURL = null,
+                    provider =  null,
+                    password = confirmPasswordInput,
+                )
+
+                // TODO: remove
+                //                userViewModel.createUser(
+                //                    user
+                //                )
+
+                userViewModel.saveUserToFirestore(
+                    user
                 )
 
                 authViewModel.setAuthStatus(true)

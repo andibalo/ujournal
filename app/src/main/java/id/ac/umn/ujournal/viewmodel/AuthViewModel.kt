@@ -11,7 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseUser
 import id.ac.umn.ujournal.R
-import id.ac.umn.ujournal.data.repository.FirebaseAuthRepository
+import id.ac.umn.ujournal.data.repository.FirebaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
 
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val credentialManager: CredentialManager,
-    private val firebaseRepository: FirebaseAuthRepository
+    private val firebaseRepository: FirebaseRepository
 ) : ViewModel() {
 
 
@@ -66,6 +66,7 @@ class AuthViewModel(
 
         try{
             firebaseRepository.register(email,password).await()
+
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
