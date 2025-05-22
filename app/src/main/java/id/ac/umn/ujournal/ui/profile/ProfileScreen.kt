@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal.ui.profile
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
@@ -57,7 +58,9 @@ import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.quality
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.UUID
@@ -100,34 +103,62 @@ fun ProfileScreen(
         authViewModel.logout()
     }
 
-    fun uploadProfileImage(it: Uri) {
-        val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+    fun uriToFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val tempFile = File.createTempFile("profile_image", ".jpg", context.cacheDir)
 
-        val ext = it.getFileExtension(context)
-        val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-        val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
-
-        val uploadTask = ref.putFile(it)
-
-        isLoading = true
-        uploadTask.addOnSuccessListener {
-            ref.downloadUrl.addOnSuccessListener { uri ->
-                val downloadUrl = uri.toString()
-
-                val updatedUser = user.copy(profileImageURL = downloadUrl)
-
-                userViewModel.updateUserData(updatedUser)
-
-                isLoading = false
-                hideBottomSheet()
+        inputStream?.use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
             }
-        }.addOnFailureListener { exception ->
-            isLoading = false
-            Log.e("Upload", "Upload failed: ${exception.message}")
-            snackbar.showMessage(
-                message = exception.message ?: "Upload failed: ${exception.message}",
-                severity = Severity.ERROR
-            )
+        }
+        return tempFile
+    }
+
+    fun uploadProfileImage(it: Uri) {
+        coroutineScope.launch {
+            isLoading = true
+            try {
+                val originalFile = uriToFile(context, it)
+                val compressedFile = Compressor.compress(context, originalFile) {
+                    quality(90)
+                }
+
+                val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+                val ext = it.getFileExtension(context)
+                val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+                val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
+
+                val fileUri = Uri.fromFile(compressedFile)
+                val uploadTask = ref.putFile(fileUri)
+
+                uploadTask.addOnSuccessListener {
+                    ref.downloadUrl.addOnSuccessListener { uri ->
+                        val downloadUrl = uri.toString()
+
+                        val updatedUser = user.copy(profileImageURL = downloadUrl)
+
+                        userViewModel.updateUserData(updatedUser)
+
+                        isLoading = false
+                        hideBottomSheet()
+                    }
+                }.addOnFailureListener { exception ->
+                    isLoading = false
+                    Log.e("Upload", "Upload failed: ${exception.message}")
+                    snackbar.showMessage(
+                        message = exception.message ?: "Upload failed: ${exception.message}",
+                        severity = Severity.ERROR
+                    )
+                }
+            } catch (e: Exception) {
+                isLoading = false
+                Log.e("Upload", "Compression/upload failed: ${e.message}")
+                snackbar.showMessage(
+                    message = e.message ?: "Compression/upload failed",
+                    severity = Severity.ERROR
+                )
+            }
         }
     }
 
