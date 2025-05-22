@@ -112,6 +112,7 @@ fun ProfileScreen(
                 input.copyTo(output)
             }
         }
+        Log.d("Upload", "Temp file converted: ${tempFile.absolutePath}")
         return tempFile
     }
 
@@ -120,9 +121,12 @@ fun ProfileScreen(
             isLoading = true
             try {
                 val originalFile = uriToFile(context, it)
+                Log.d("Upload", "Original size: ${originalFile.length() / 1024} KB")
                 val compressedFile = Compressor.compress(context, originalFile) {
                     quality(90)
                 }
+                Log.d("Compression", "Compressed file size: ${compressedFile.length() / 1024} KB")
+                Log.i("Compression", "File compressed successfully: ${compressedFile.absolutePath}")
 
                 val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
                 val ext = it.getFileExtension(context)
@@ -153,9 +157,9 @@ fun ProfileScreen(
                 }
             } catch (e: Exception) {
                 isLoading = false
-                Log.e("Upload", "Compression/upload failed: ${e.message}")
+                Log.e("Upload", "Upload failed: ${e.message}")
                 snackbar.showMessage(
-                    message = e.message ?: "Compression/upload failed",
+                    message = e.message ?: "Upload failed",
                     severity = Severity.ERROR
                 )
             }
