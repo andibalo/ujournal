@@ -135,30 +135,45 @@ fun ProfileScreen(
             try {
                 val originalFile = uriToFile(context, it)
                 Log.d("Upload", "Original size: ${formatFileSize(originalFile.length())}")
+
                 val compressedFile = Compressor.compress(context, originalFile) {
                     quality(90)
                 }
-                Log.d("Compression", "Compressed file size: ${formatFileSize(compressedFile.length())}")
+                Log.d(
+                    "Compression",
+                    "Compressed file size: ${formatFileSize(compressedFile.length())}"
+                )
                 Log.i("Compression", "File compressed successfully: ${compressedFile.absolutePath}")
 
-                val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+                val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
                 val ext = it.getFileExtension(context)
                 val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-                val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
-                val fileUri = Uri.fromFile(compressedFile)
-                val uploadTask = ref.putFile(fileUri)
 
-                uploadTask.addOnSuccessListener {
+                val ref =
+                    storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
+                val compressedRef =
+                    storageRef.child("${context.getString(R.string.compressed_profile_picture_bucket_folder)}/${fileName}")
+
+                val fileUri = Uri.fromFile(originalFile)
+                val compressedFileUri = Uri.fromFile(compressedFile)
+
+                val originalUploadTask = ref.putFile(fileUri)
+                val compressedUploadTask = compressedRef.putFile(compressedFileUri)
+
+                var originalDone = false
+                var compressedDone = false
+
+                originalUploadTask.addOnSuccessListener {
                     ref.metadata.addOnSuccessListener { metadata ->
-                        val sizeBytes = metadata.sizeBytes
-                        Log.d("Firebase", "Uploaded file size in Firebase Storage: ${formatFileSize(metadata.sizeBytes)}")
+                        Log.d(
+                            "Firebase",
+                            "Uploaded original file size in Firebase Storage: ${
+                                formatFileSize(metadata.sizeBytes)
+                            }"
+                        )
                     }
-                    ref.downloadUrl.addOnSuccessListener { uri ->
-                        val downloadUrl = uri.toString()
-                        val updatedUser = user.copy(profileImageURL = downloadUrl)
-
-                        userViewModel.updateUserData(updatedUser)
-
+                    originalDone = true
+                    if (compressedDone) {
                         isLoading = false
                         hideBottomSheet()
                     }
@@ -170,6 +185,34 @@ fun ProfileScreen(
                         severity = Severity.ERROR
                     )
                 }
+
+                compressedUploadTask.addOnSuccessListener {
+                    compressedRef.metadata.addOnSuccessListener { metadata ->
+                        Log.d(
+                            "Firebase",
+                            "Compressed uploaded size: ${formatFileSize(metadata.sizeBytes)}"
+                        )
+                    }
+                    compressedRef.downloadUrl.addOnSuccessListener { uri ->
+                        val downloadUrl = uri.toString()
+                        val updatedUser = user.copy(profileImageURL = downloadUrl)
+
+                        userViewModel.updateUserData(updatedUser)
+                    }
+                    compressedDone = true
+                    if (originalDone) {
+                        isLoading = false
+                        hideBottomSheet()
+                    }
+                }.addOnFailureListener { exception ->
+                    isLoading = false
+                    Log.e("Upload", "Compression failed: ${exception.message}")
+                    snackbar.showMessage(
+                        message = exception.message ?: "Compression failed: ${exception.message}",
+                        severity = Severity.ERROR
+                    )
+                }
+
             } catch (e: Exception) {
                 isLoading = false
                 Log.e("Upload", "Upload failed: ${e.message}")
