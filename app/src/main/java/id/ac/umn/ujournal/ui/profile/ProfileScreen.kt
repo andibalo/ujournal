@@ -56,6 +56,7 @@ import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import id.zelory.compressor.Compressor
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
