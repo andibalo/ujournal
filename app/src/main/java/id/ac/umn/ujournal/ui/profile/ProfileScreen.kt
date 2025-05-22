@@ -103,6 +103,19 @@ fun ProfileScreen(
         authViewModel.logout()
     }
 
+    fun formatFileSize(sizeInBytes: Long): String {
+        val kb = 1024L
+        val mb = kb * 1024
+        val gb = mb * 1024
+
+        return when {
+            sizeInBytes >= gb -> String.format("%.2f GB", sizeInBytes.toDouble() / gb)
+            sizeInBytes >= mb -> String.format("%.2f MB", sizeInBytes.toDouble() / mb)
+            sizeInBytes >= kb -> String.format("%.2f KB", sizeInBytes.toDouble() / kb)
+            else -> "$sizeInBytes Bytes"
+        }
+    }
+
     fun uriToFile(context: Context, uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
         val tempFile = File.createTempFile("profile_image", ".jpg", context.cacheDir)
@@ -121,25 +134,27 @@ fun ProfileScreen(
             isLoading = true
             try {
                 val originalFile = uriToFile(context, it)
-                Log.d("Upload", "Original size: ${originalFile.length() / 1024} KB")
+                Log.d("Upload", "Original size: ${formatFileSize(originalFile.length())}")
                 val compressedFile = Compressor.compress(context, originalFile) {
                     quality(90)
                 }
-                Log.d("Compression", "Compressed file size: ${compressedFile.length() / 1024} KB")
+                Log.d("Compression", "Compressed file size: ${formatFileSize(compressedFile.length())}")
                 Log.i("Compression", "File compressed successfully: ${compressedFile.absolutePath}")
 
                 val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
                 val ext = it.getFileExtension(context)
                 val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
                 val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
-
                 val fileUri = Uri.fromFile(compressedFile)
                 val uploadTask = ref.putFile(fileUri)
 
                 uploadTask.addOnSuccessListener {
+                    ref.metadata.addOnSuccessListener { metadata ->
+                        val sizeBytes = metadata.sizeBytes
+                        Log.d("Firebase", "Uploaded file size in Firebase Storage: ${formatFileSize(metadata.sizeBytes)}")
+                    }
                     ref.downloadUrl.addOnSuccessListener { uri ->
                         val downloadUrl = uri.toString()
-
                         val updatedUser = user.copy(profileImageURL = downloadUrl)
 
                         userViewModel.updateUserData(updatedUser)
