@@ -9,11 +9,13 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import id.ac.umn.ujournal.data.model.JournalEntry
 import id.ac.umn.ujournal.data.model.User
+import id.ac.umn.ujournal.ui.util.toDate
+import kotlinx.coroutines.tasks.await
 
 class FirebaseRepositoryImpl(
     private val auth: FirebaseAuth,
@@ -41,20 +43,52 @@ class FirebaseRepositoryImpl(
         return auth.signInWithCredential(googleCredential)
     }
 
+    override suspend fun getJournalEntryByID(id: String): DocumentSnapshot {
+        // TODO: query by user id
+        val document = db.collection("journalEntries")
+            .document(id)
+            .get()
+            .await()
+
+        return document
+    }
+
+
+    override suspend fun getJournalEntries(): QuerySnapshot {
+        // TODO: query by user id
+        val documents = db.collection("journalEntries")
+            .get()
+            .await()
+
+        return documents
+    }
+
     override suspend fun saveJournalEntry(journalEntry: JournalEntry): Task<Void> {
+        val createdAt = journalEntry.createdAt.toDate()
+
         val journalEntryData = hashMapOf(
             "title" to journalEntry.title,
             "description" to journalEntry.description,
             "imageURI" to journalEntry.imageURI,
+            "userId" to journalEntry.userId,
             "latitude" to journalEntry.latitude,
             "longitude" to journalEntry.longitude,
-            "createdAt" to journalEntry.createdAt,
+            "createdAt" to createdAt,
+            "updatedAt" to null,
         )
 
         return db
                 .collection("journalEntries")
                 .document(journalEntry.id)
                 .set(journalEntryData)
+    }
+
+    override suspend fun deleteJournalEntryByID(id: String): Task<Void> {
+
+        return db
+                .collection("journalEntries")
+                .document(id)
+                .delete()
     }
 
     override suspend fun getUser(userID: String): Task<DocumentSnapshot> {

@@ -25,6 +25,20 @@ import androidx.navigation.NavDestination
 import androidx.window.core.layout.WindowHeightSizeClass
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
+import com.google.firebase.Timestamp
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Date
+
+fun Timestamp.toLocalDateTime(): LocalDateTime {
+    return this.toDate().toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+}
+
+fun LocalDateTime.toDate(zone : ZoneId = ZoneId.systemDefault()): Date {
+    return Date.from(this.atZone(zone).toInstant())
+}
 
 @Composable
 fun LazyListState.isScrollingUp(): Boolean {

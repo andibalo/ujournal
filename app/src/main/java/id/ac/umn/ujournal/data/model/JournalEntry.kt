@@ -5,7 +5,7 @@ import java.util.UUID
 
 data class JournalEntry(
     val id: String,
-    var userID: String?, // TODO: make required
+    var userId: String,
     var title: String,
     var description: String,
     var imageURI: String?,

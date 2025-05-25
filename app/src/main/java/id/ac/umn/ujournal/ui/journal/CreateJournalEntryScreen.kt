@@ -36,6 +36,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,6 +78,8 @@ import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.ui.util.getFileExtension
+import id.ac.umn.ujournal.viewmodel.UserState
+import id.ac.umn.ujournal.viewmodel.UserViewModel
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
@@ -93,12 +96,14 @@ data class CreateJournalInput(
 @Composable
 fun CreateJournalEntryScreen(
     journalEntryViewModel: JournalEntryViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(),
     onBackButtonClick : () -> Unit = {},
     snackbarHostState: SnackbarHostState
 ) {
+    val userState by userViewModel.userState.collectAsState()
+    val user = (userState as UserState.Success).user
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
@@ -184,6 +189,7 @@ fun CreateJournalEntryScreen(
                     val downloadUrl = uri.toString()
                     val journalEntry = JournalEntry(
                         id = UUID.randomUUID().toString(),
+                        userId = user.id,
                         title = entryTitle,
                         description = entryBody,
                         imageURI = downloadUrl,
@@ -191,14 +197,27 @@ fun CreateJournalEntryScreen(
                         longitude = longitude,
                         createdAt = entryDate,
                         updatedAt = null,
-                        userID = null
                     )
 
-                    journalEntryViewModel.addJournalEntry(journalEntry)
+                    coroutineScope.launch {
+                        try {
+                            journalEntryViewModel.addJournalEntry(journalEntry)
 
-                    isLoading = false
 
-                    onBackButtonClick()
+                            isLoading = false
+
+                            onBackButtonClick()
+                        }catch (e: Exception){
+
+                            Log.d("CreateJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
+                            Log.d("CreateJournalEntryScreen.onSubmitClick", e.stackTraceToString())
+
+                            snackbar.showMessage(
+                                message = e.message ?: "Something went wrong",
+                                severity = Severity.ERROR
+                            )
+                        }
+                    }
                 }
             }.addOnFailureListener { exception ->
                 isLoading = false
@@ -208,24 +227,40 @@ fun CreateJournalEntryScreen(
                     severity = Severity.ERROR
                 )
             }
-        } else {
-            val journalEntry = JournalEntry(
-                id = UUID.randomUUID().toString(),
-                title = entryTitle,
-                description = entryBody,
-                imageURI = null,
-                latitude = latitude,
-                longitude = longitude,
-                createdAt = entryDate,
-                updatedAt = null,
-                userID = null
-            )
 
-            journalEntryViewModel.addJournalEntry(journalEntry)
+            return
+        }
 
-            isLoading = false
+        val journalEntry = JournalEntry(
+            id = UUID.randomUUID().toString(),
+            userId = user.id,
+            title = entryTitle,
+            description = entryBody,
+            imageURI = null,
+            latitude = latitude,
+            longitude = longitude,
+            createdAt = entryDate,
+            updatedAt = null,
+        )
 
-            onBackButtonClick()
+        coroutineScope.launch {
+            try {
+                journalEntryViewModel.addJournalEntry(journalEntry)
+
+
+                isLoading = false
+
+                onBackButtonClick()
+            }catch (e: Exception){
+
+                Log.d("CreateJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
+                Log.d("CreateJournalEntryScreen.onSubmitClick", e.stackTraceToString())
+
+                snackbar.showMessage(
+                    message = e.message ?: "Something went wrong",
+                    severity = Severity.ERROR
+                )
+            }
         }
     }
 

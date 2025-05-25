@@ -41,7 +41,9 @@ class MainActivity : ComponentActivity() {
             )
 
             val themeViewModel: ThemeViewModel = viewModel()
-            val journalEntryViewModel: JournalEntryViewModel = viewModel()
+            val journalEntryViewModel =  JournalEntryViewModel(
+                firebaseRepository = firebaseRepo
+            )
             val userViewModel =  UserViewModel(
                 firebaseRepository = firebaseRepo
             )
