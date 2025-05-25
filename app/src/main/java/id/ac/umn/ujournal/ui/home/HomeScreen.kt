@@ -62,9 +62,10 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         userViewModel.loadUserData()
+        journalEntryViewModel.getJournalEntries()
     }
 
-    if (userState == UserState.Loading) {
+    if (userState is UserState.Loading) {
         LoadingScreen()
         return
     }

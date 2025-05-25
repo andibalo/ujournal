@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal.ui.profile
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
@@ -56,7 +57,10 @@ import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
 import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.quality
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.UUID
@@ -99,34 +103,124 @@ fun ProfileScreen(
         authViewModel.logout()
     }
 
-    fun uploadProfileImage(it: Uri) {
-        val currentDate =  SimpleDateFormat("yyyyMMdd").format(Date())
+    fun formatFileSize(sizeInBytes: Long): String {
+        val kb = 1024L
+        val mb = kb * 1024
+        val gb = mb * 1024
 
-        val ext = it.getFileExtension(context)
-        val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
-        val ref = storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
+        return when {
+            sizeInBytes >= gb -> String.format("%.2f GB", sizeInBytes.toDouble() / gb)
+            sizeInBytes >= mb -> String.format("%.2f MB", sizeInBytes.toDouble() / mb)
+            sizeInBytes >= kb -> String.format("%.2f KB", sizeInBytes.toDouble() / kb)
+            else -> "$sizeInBytes Bytes"
+        }
+    }
 
-        val uploadTask = ref.putFile(it)
+    fun uriToFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val tempFile = File.createTempFile("profile_image", ".jpg", context.cacheDir)
 
-        isLoading = true
-        uploadTask.addOnSuccessListener {
-            ref.downloadUrl.addOnSuccessListener { uri ->
-                val downloadUrl = uri.toString()
-
-                val updatedUser = user.copy(profileImageURL = downloadUrl)
-
-                userViewModel.updateUserData(updatedUser)
-
-                isLoading = false
-                hideBottomSheet()
+        inputStream?.use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
             }
-        }.addOnFailureListener { exception ->
-            isLoading = false
-            Log.e("Upload", "Upload failed: ${exception.message}")
-            snackbar.showMessage(
-                message = exception.message ?: "Upload failed: ${exception.message}",
-                severity = Severity.ERROR
-            )
+        }
+        Log.d("Upload", "Temp file converted: ${tempFile.absolutePath}")
+        return tempFile
+    }
+
+    fun uploadProfileImage(it: Uri) {
+        coroutineScope.launch {
+            isLoading = true
+            try {
+                val originalFile = uriToFile(context, it)
+                Log.d("Upload", "Original size: ${formatFileSize(originalFile.length())}")
+
+                val compressedFile = Compressor.compress(context, originalFile) {
+                    quality(90)
+                }
+                Log.d(
+                    "Compression",
+                    "Compressed file size: ${formatFileSize(compressedFile.length())}"
+                )
+                Log.i("Compression", "File compressed successfully: ${compressedFile.absolutePath}")
+
+                val currentDate = SimpleDateFormat("yyyyMMdd").format(Date())
+                val ext = it.getFileExtension(context)
+                val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
+
+                val ref =
+                    storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
+                val compressedRef =
+                    storageRef.child("${context.getString(R.string.compressed_profile_picture_bucket_folder)}/${fileName}")
+
+                val fileUri = Uri.fromFile(originalFile)
+                val compressedFileUri = Uri.fromFile(compressedFile)
+
+                val originalUploadTask = ref.putFile(fileUri)
+                val compressedUploadTask = compressedRef.putFile(compressedFileUri)
+
+                var originalDone = false
+                var compressedDone = false
+
+                originalUploadTask.addOnSuccessListener {
+                    ref.metadata.addOnSuccessListener { metadata ->
+                        Log.d(
+                            "Firebase",
+                            "Uploaded original file size in Firebase Storage: ${
+                                formatFileSize(metadata.sizeBytes)
+                            }"
+                        )
+                    }
+                    originalDone = true
+                    if (compressedDone) {
+                        isLoading = false
+                        hideBottomSheet()
+                    }
+                }.addOnFailureListener { exception ->
+                    isLoading = false
+                    Log.e("Upload", "Upload failed: ${exception.message}")
+                    snackbar.showMessage(
+                        message = exception.message ?: "Upload failed: ${exception.message}",
+                        severity = Severity.ERROR
+                    )
+                }
+
+                compressedUploadTask.addOnSuccessListener {
+                    compressedRef.metadata.addOnSuccessListener { metadata ->
+                        Log.d(
+                            "Firebase",
+                            "Compressed uploaded size: ${formatFileSize(metadata.sizeBytes)}"
+                        )
+                    }
+                    compressedRef.downloadUrl.addOnSuccessListener { uri ->
+                        val downloadUrl = uri.toString()
+                        val updatedUser = user.copy(profileImageURL = downloadUrl)
+
+                        userViewModel.updateUserData(updatedUser)
+                    }
+                    compressedDone = true
+                    if (originalDone) {
+                        isLoading = false
+                        hideBottomSheet()
+                    }
+                }.addOnFailureListener { exception ->
+                    isLoading = false
+                    Log.e("Upload", "Compression failed: ${exception.message}")
+                    snackbar.showMessage(
+                        message = exception.message ?: "Compression failed: ${exception.message}",
+                        severity = Severity.ERROR
+                    )
+                }
+
+            } catch (e: Exception) {
+                isLoading = false
+                Log.e("Upload", "Upload failed: ${e.message}")
+                snackbar.showMessage(
+                    message = e.message ?: "Upload failed",
+                    severity = Severity.ERROR
+                )
+            }
         }
     }
 

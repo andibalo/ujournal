@@ -42,6 +42,8 @@ import kotlinx.coroutines.launch
 import id.ac.umn.ujournal.R
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import id.ac.umn.ujournal.data.model.JournalEntry
+import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
@@ -72,22 +74,19 @@ fun EditJournalEntryScreen(
         return
     }
 
-    val journalEntry = remember(journalEntryID) { journalEntryViewModel.getJournalEntry(journalEntryID) }
-    if (journalEntry == null) {
-        onBackButtonClick()
-        return
-    }
+    var journalEntry by remember { mutableStateOf<JournalEntry?>(null) }
 
+    var isFetchingInitialData by rememberSaveable { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
-    var entryTitle by rememberSaveable { mutableStateOf(journalEntry.title) }
+    var entryTitle by rememberSaveable { mutableStateOf("") }
     var entryTitleInputErrMsg by remember { mutableStateOf("") }
-    var entryBody by rememberSaveable { mutableStateOf(journalEntry.description) }
+    var entryBody by rememberSaveable { mutableStateOf("") }
     var entryBodyInputErrMsg by remember { mutableStateOf("") }
-    var photoUri by rememberSaveable { mutableStateOf(journalEntry.imageURI?.let { Uri.parse(it) }) }
+    var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var newPhotoUri : Uri? by rememberSaveable { mutableStateOf(null)}
-    var latitude by rememberSaveable { mutableStateOf(journalEntry.latitude) }
-    var longitude by rememberSaveable { mutableStateOf(journalEntry.longitude) }
-    var createdAt by rememberSaveable { mutableStateOf(journalEntry.createdAt) }
+    var latitude: Double? by rememberSaveable { mutableStateOf(null) }
+    var longitude: Double? by rememberSaveable { mutableStateOf(null) }
+    var createdAt: LocalDateTime? by rememberSaveable { mutableStateOf(null) }
     var showLocationPicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -101,6 +100,40 @@ fun EditJournalEntryScreen(
     val storageRef = storage.reference
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(journalEntryID) {
+        isFetchingInitialData = true
+
+        val je = journalEntryViewModel.getJournalEntryByID(journalEntryID)
+
+        try {
+            journalEntry = journalEntryViewModel.getJournalEntryByID(journalEntryID)
+
+            if (je == null) {
+                onBackButtonClick()
+            } else {
+                journalEntry = je
+
+                entryTitle = je.title
+                entryBody = je.description
+
+                if(je.imageURI != null) {
+                    photoUri = Uri.parse(je.imageURI)
+                }
+
+                latitude = je.latitude
+                longitude = je.longitude
+                createdAt = je.createdAt
+            }
+        } catch (e: Exception) {
+            snackbar.showMessage(
+                message = e.message ?: "Something went wrong",
+                severity = Severity.ERROR
+            )
+        } finally {
+            isFetchingInitialData = false
+        }
+    }
 
     val validateEditJournalInput = Validation {
         EditJournalInput::entryTitle {
@@ -159,19 +192,35 @@ fun EditJournalEntryScreen(
             uploadTask.addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener { uri ->
                     val downloadUrl = uri.toString()
-                    journalEntryViewModel.updateJournalEntry(
-                        journalEntryID = journalEntry.id.toString(),
-                        newTitle = entryTitle,
-                        newDescription = entryBody,
-                        newImageURI = downloadUrl,
-                        newLatitude = latitude,
-                        newLongitude = longitude,
-                        updatedAt = LocalDateTime.now(),
-                        newDate = createdAt
-                    )
 
-                    isLoading = false
-                    onBackButtonClick()
+                    coroutineScope.launch {
+                        try {
+
+                            journalEntryViewModel.updateJournalEntryByID(
+                                journalEntryID = journalEntry!!.id,
+                                journalEntry = journalEntry!!.copy(
+                                    title = entryTitle,
+                                    description = entryBody,
+                                    imageURI = downloadUrl,
+                                    latitude = latitude,
+                                    longitude = longitude,
+                                    createdAt = createdAt!!
+                                )
+                            )
+
+                            isLoading = false
+                            onBackButtonClick()
+                        }catch (e: Exception){
+                            isLoading = false
+                            Log.d("EditJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
+                            Log.d("EditJournalEntryScreen.onSubmitClick", e.stackTraceToString())
+
+                            snackbar.showMessage(
+                                message = e.message ?: "Something went wrong",
+                                severity = Severity.ERROR
+                            )
+                        }
+                    }
                 }
             }.addOnFailureListener { exception ->
                 isLoading = false
@@ -182,21 +231,39 @@ fun EditJournalEntryScreen(
                 )
             }
         } else {
-            journalEntryViewModel.updateJournalEntry(
-                journalEntryID = journalEntry.id.toString(),
-                newTitle = entryTitle,
-                newDescription = entryBody,
-                newImageURI = null,
-                newLatitude = latitude,
-                newLongitude = longitude,
-                updatedAt = LocalDateTime.now(),
-                newDate = createdAt
-            )
+            coroutineScope.launch {
+                try {
 
-            isLoading = false
+                    journalEntryViewModel.updateJournalEntryByID(
+                        journalEntryID = journalEntry!!.id,
+                        journalEntry = journalEntry!!.copy(
+                            title = entryTitle,
+                            description = entryBody,
+                            latitude = latitude,
+                            longitude = longitude,
+                            createdAt = createdAt!!
+                        )
+                    )
 
-            onBackButtonClick()
+                    isLoading = false
+                    onBackButtonClick()
+                }catch (e: Exception){
+                    isLoading = false
+                    Log.d("EditJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
+                    Log.d("EditJournalEntryScreen.onSubmitClick", e.stackTraceToString())
+
+                    snackbar.showMessage(
+                        message = e.message ?: "Something went wrong",
+                        severity = Severity.ERROR
+                    )
+                }
+            }
         }
+    }
+
+    if (isFetchingInitialData) {
+        LoadingScreen()
+        return
     }
 
     if (showLocationPicker) {
@@ -212,21 +279,22 @@ fun EditJournalEntryScreen(
     }
 
     if(showDatePicker){
-        DatePickerModal(
-            onDismiss = {
-                showDatePicker = false
-            },
-            onDateSelected = {
-                    selectedTimestamp ->
-                if (selectedTimestamp != null) {
-                    createdAt = LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(selectedTimestamp),
-                        ZoneId.systemDefault()
-                    )
-                }
-            },
-            dataInSeconds = createdAt.toLocalMilliseconds()
-        )
+        createdAt?.let {
+            DatePickerModal(
+                onDismiss = {
+                    showDatePicker = false
+                },
+                onDateSelected = { selectedTimestamp ->
+                    if (selectedTimestamp != null) {
+                        createdAt = LocalDateTime.ofInstant(
+                            Instant.ofEpochMilli(selectedTimestamp),
+                            ZoneId.systemDefault()
+                        )
+                    }
+                },
+                dataInSeconds = it.toLocalMilliseconds()
+            )
+        }
     }
 
     if (showTimePicker) {
@@ -235,7 +303,7 @@ fun EditJournalEntryScreen(
                 showTimePicker = false
             },
             onConfirm = {
-                createdAt = createdAt.withHour(it.hour).withMinute(it.minute)
+                createdAt = createdAt?.withHour(it.hour)?.withMinute(it.minute)
                 showTimePicker = false
             },
         )
@@ -353,9 +421,11 @@ fun EditJournalEntryScreen(
                     showDatePicker = true
                 }
             ) {
-                Text(
-                    text = createdAt.format(ddMMMMyyyyDateTimeFormatter)
-                )
+                createdAt?.let {
+                    Text(
+                        text = it.format(ddMMMMyyyyDateTimeFormatter)
+                    )
+                }
                 Spacer(Modifier.padding(horizontal = 1.dp))
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = "Date dropdown")
             }
@@ -365,9 +435,11 @@ fun EditJournalEntryScreen(
                     showTimePicker = true
                 }
             ) {
-                Text(
-                    text = createdAt.format(HourTimeFormatter24)
-                )
+                createdAt?.let {
+                    Text(
+                        text = it.format(HourTimeFormatter24)
+                    )
+                }
                 Spacer(Modifier.padding(horizontal = 1.dp))
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = "Time dropdown")
             }

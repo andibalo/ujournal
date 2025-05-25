@@ -159,10 +159,14 @@ fun RegisterScreen(
 
         scope.launch {
             try {
-                authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
+                val userAuth = authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
 
-                val user =   User(
-                    id = UUID.randomUUID(),
+                if (userAuth == null){
+                    throw Exception("User data is null")
+                }
+
+                val user = User(
+                    id = userAuth.uid,
                     firstName = firstNameInput.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
                             Locale.getDefault()
@@ -178,11 +182,6 @@ fun RegisterScreen(
                     provider =  null,
                     password = confirmPasswordInput,
                 )
-
-                // TODO: remove
-                //                userViewModel.createUser(
-                //                    user
-                //                )
 
                 userViewModel.saveUserToFirestore(
                     user
@@ -228,7 +227,7 @@ fun RegisterScreen(
                 }
 
                 userViewModel.createUser(User(
-                    id = UUID.randomUUID(),
+                    id = UUID.randomUUID().toString(),
                     firstName = firstName.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
                             Locale.getDefault()

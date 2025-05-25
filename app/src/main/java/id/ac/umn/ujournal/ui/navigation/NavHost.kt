@@ -169,6 +169,7 @@ fun UJournalNavHost(
                 ) {
                     CreateJournalEntryScreen(
                         journalEntryViewModel = journalEntryViewModel,
+                        userViewModel = userViewModel,
                         onBackButtonClick = {
                             if (navController.previousBackStackEntry != null) {
                                 navController.navigateUp()
@@ -227,7 +228,8 @@ fun UJournalNavHost(
                         },
                         onEditButtonClick = { journalEntryID ->
                             navController.navigate("${EditJournalEntry.route}/$journalEntryID")
-                        }
+                        },
+                        snackbarHostState = snackBarHost,
                     )
                 }
             }

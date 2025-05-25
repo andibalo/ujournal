@@ -1,6 +1,7 @@
 package id.ac.umn.ujournal.ui.map
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -91,30 +93,42 @@ fun MediaScreen(
         Column (
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding()).fillMaxSize(),
         ) {
-            LazyColumn {
-                groupedByDateJournalEntries.forEach { (date, journalEntries) ->
+            if (groupedByDateJournalEntries.isEmpty()) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        text = "No Journal Entries With Media",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+            } else {
+                LazyColumn {
+                    groupedByDateJournalEntries.forEach { (date, journalEntries) ->
 
-                    item {
-                        Text(
-                            text = date,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
+                        item {
+                            Text(
+                                text = date,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
 
-                    item {
-                        NonLazyGrid(
-                            columns = when(
-                                adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                        item {
+                            NonLazyGrid(
+                                columns = when(
+                                    adaptiveInfo.windowSizeClass.windowWidthSizeClass
+                                ) {
+                                    WindowWidthSizeClass.MEDIUM -> 5
+                                    WindowWidthSizeClass.EXPANDED -> 7
+                                    else -> 3
+                                },
+                                itemCount = journalEntries.size,
+                                modifier = Modifier
+                                    .padding(start = 7.5.dp, end = 7.5.dp)
                             ) {
-                                WindowWidthSizeClass.MEDIUM -> 5
-                                WindowWidthSizeClass.EXPANDED -> 7
-                                else -> 3
-                            },
-                            itemCount = journalEntries.size,
-                            modifier = Modifier
-                                .padding(start = 7.5.dp, end = 7.5.dp)
-                        ) {
                                 AsyncImage(
                                     model = journalEntries[it].imageURI,
                                     modifier = Modifier
@@ -126,10 +140,11 @@ fun MediaScreen(
                                     contentDescription = "Journal Entry Photo",
                                     contentScale = ContentScale.Crop
                                 )
+                            }
+                            Spacer(
+                                modifier = Modifier.padding(8.dp).fillMaxWidth()
+                            )
                         }
-                        Spacer(
-                            modifier = Modifier.padding(8.dp).fillMaxWidth()
-                        )
                     }
                 }
             }

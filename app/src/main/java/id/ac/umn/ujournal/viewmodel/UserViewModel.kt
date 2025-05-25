@@ -79,6 +79,22 @@ class UserViewModel(
         }
     }
 
+    suspend fun fetchUserFromFirebase(userID : String) {
+        _userState.value = UserState.Loading
+
+        try{
+            val user = firebaseRepository.getUser(userID)
+            println("TEST")
+            println(user)
+//            this.updateUserData(user)
+//
+//            _userState.value = UserState.Success(user)
+
+        } catch (e:Exception){
+            _userState.value = UserState.Error("Failed to save user")
+            throw Exception(e.message?:"Something went wrong")
+        }
+    }
 
     private suspend fun fetchUserFromRemote(): User? {
         kotlinx.coroutines.delay(1000)
@@ -147,7 +163,7 @@ class UserViewModel(
 // TODO: remove after backend integration
 private fun generateInitialUser(): User {
     return User(
-        id = UUID.randomUUID(),
+        id = UUID.randomUUID().toString(),
         firstName = "John",
         lastName = "Doe",
         email = "test@gmail.com",
