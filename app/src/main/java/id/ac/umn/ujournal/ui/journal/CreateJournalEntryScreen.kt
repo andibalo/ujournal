@@ -36,6 +36,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,12 +74,12 @@ import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import com.google.firebase.storage.storage
 import id.ac.umn.ujournal.R
+import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBarVisuals
 import id.ac.umn.ujournal.ui.util.getFileExtension
-import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -100,11 +101,13 @@ fun CreateJournalEntryScreen(
     onBackButtonClick : () -> Unit = {},
     snackbarHostState: SnackbarHostState
 ) {
-    val userState by userViewModel.userState.collectAsState()
-    val user = (userState as UserState.Success).user
+
+    val user by userViewModel.user.collectAsState()
+
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
+    var isFetchingUserData by rememberSaveable { mutableStateOf(false) }
     var photoUri: Uri? by rememberSaveable { mutableStateOf(null) }
     var entryTitle by rememberSaveable { mutableStateOf("") }
     var entryTitleInputErrMsg by remember { mutableStateOf("") }
@@ -139,6 +142,22 @@ fun CreateJournalEntryScreen(
         CreateJournalInput::entryBody  {
             notBlank() hint NOT_BLANK_VALIDATION_HINT
             maxLength(255)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        isFetchingUserData = true
+
+        try {
+           userViewModel.loadUserData()
+
+        } catch (e: Exception) {
+            snackbar.showMessage(
+                message = e.message ?: "Something went wrong",
+                severity = Severity.ERROR
+            )
+        } finally {
+            isFetchingUserData = false
         }
     }
 
@@ -189,7 +208,7 @@ fun CreateJournalEntryScreen(
                     val downloadUrl = uri.toString()
                     val journalEntry = JournalEntry(
                         id = UUID.randomUUID().toString(),
-                        userId = user.id,
+                        userId = user!!.id,
                         title = entryTitle,
                         description = entryBody,
                         imageURI = downloadUrl,
@@ -234,7 +253,7 @@ fun CreateJournalEntryScreen(
 
         val journalEntry = JournalEntry(
             id = UUID.randomUUID().toString(),
-            userId = user.id,
+            userId = user!!.id,
             title = entryTitle,
             description = entryBody,
             imageURI = null,
@@ -266,6 +285,10 @@ fun CreateJournalEntryScreen(
         }
     }
 
+    if (isFetchingUserData) {
+        LoadingScreen()
+        return
+    }
 
     if (showLocationPicker) {
         LocationPicker(
