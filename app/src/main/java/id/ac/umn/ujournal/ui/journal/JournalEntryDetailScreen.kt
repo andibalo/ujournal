@@ -64,7 +64,6 @@ fun JournalEntryDetailScreen(
         val je = journalEntryViewModel.getJournalEntryByID(journalEntryID)
 
         try {
-            // Fetch the journal entry by ID asynchronously
             journalEntry = journalEntryViewModel.getJournalEntryByID(journalEntryID)
 
             if (je == null) {

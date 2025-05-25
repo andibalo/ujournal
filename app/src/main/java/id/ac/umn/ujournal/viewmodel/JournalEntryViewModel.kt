@@ -85,10 +85,6 @@ class JournalEntryViewModel(
         }
     }
 
-    fun getJournalEntry(journalEntryID: String): JournalEntry? {
-        return _journalEntries.value.firstOrNull { it.id.toString() == journalEntryID }
-    }
-
     suspend fun deleteJournalEntryByID(journalEntryID: String) {
         _journalEntryState.value = JournalEntryState.Loading
 
@@ -134,34 +130,15 @@ class JournalEntryViewModel(
         }
     }
 
-    fun updateJournalEntry(
-        journalEntryID: String,
-        newTitle: String,
-        newDescription: String,
-        newImageURI: String?,
-        newLatitude: Double?,
-        newLongitude: Double?,
-        newDate: LocalDateTime?,
-        updatedAt: LocalDateTime
-    ) {
-        Log.d("JournalEntryViewModel", "Updating entry with ID: $journalEntryID")
+    suspend fun updateJournalEntryByID(journalEntryID: String, journalEntry: JournalEntry) {
+        _journalEntryState.value = JournalEntryState.Loading
 
-        _journalEntries.update { currentEntries ->
-            currentEntries.map { entry ->
-                if (entry.id.toString() == journalEntryID) {
-                    entry.copy(
-                        title = newTitle,
-                        description = newDescription,
-                        imageURI = newImageURI,
-                        latitude = newLatitude,
-                        longitude = newLongitude,
-                        createdAt = newDate ?: entry.createdAt,
-                        updatedAt = updatedAt
-                    )
-                } else {
-                    entry
-                }
-            }
+        try{
+            firebaseRepository.updateJournalEntryByID(journalEntryID, journalEntry).await()
+
+        } catch (e:Exception){
+            _journalEntryState.value = JournalEntryState.Error("Failed to update journal entry")
+            throw Exception(e.message?:"Something went wrong")
         }
     }
 

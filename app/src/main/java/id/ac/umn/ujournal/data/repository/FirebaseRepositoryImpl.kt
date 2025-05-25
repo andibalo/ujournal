@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import id.ac.umn.ujournal.data.model.JournalEntry
@@ -81,6 +82,23 @@ class FirebaseRepositoryImpl(
                 .collection("journalEntries")
                 .document(journalEntry.id)
                 .set(journalEntryData)
+    }
+
+    override suspend fun updateJournalEntryByID(id: String, journalEntry: JournalEntry): Task<Void> {
+
+        val journalEntryUpdateData = mapOf(
+            "title" to journalEntry.title,
+            "description" to journalEntry.description,
+            "imageURI" to journalEntry.imageURI,
+            "latitude" to journalEntry.latitude,
+            "longitude" to journalEntry.longitude,
+            "updatedAt" to FieldValue.serverTimestamp(),
+        )
+
+        return db
+            .collection("journalEntries")
+            .document(id)
+            .update(journalEntryUpdateData)
     }
 
     override suspend fun deleteJournalEntryByID(id: String): Task<Void> {

@@ -208,6 +208,7 @@ fun CreateJournalEntryScreen(
 
                             onBackButtonClick()
                         }catch (e: Exception){
+                            isLoading = false
 
                             Log.d("CreateJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
                             Log.d("CreateJournalEntryScreen.onSubmitClick", e.stackTraceToString())
@@ -252,6 +253,7 @@ fun CreateJournalEntryScreen(
 
                 onBackButtonClick()
             }catch (e: Exception){
+                isLoading = false
 
                 Log.d("CreateJournalEntryScreen.onSubmitClick", e.message ?: "Unknown Error")
                 Log.d("CreateJournalEntryScreen.onSubmitClick", e.stackTraceToString())
