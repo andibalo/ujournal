@@ -39,7 +39,7 @@ class AuthViewModel(
         }
     }
 
-    suspend fun firebaseAuthBasicLogin(email : String, password : String): FirebaseUser? {
+    suspend fun firebaseAuthBasicLogin(email : String, password : String): FirebaseUser {
 
         if(email.isEmpty() || password.isEmpty()){
             _authState.value = AuthState.Error("Email or password can't be empty")
@@ -49,10 +49,13 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
 
         try{
-
             val auth = firebaseRepository.login(email,password).await()
 
-            return auth.user
+            if (auth.user == null){
+                throw Exception("Auth user is null")
+            }
+
+            return auth.user!!
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")
             throw Exception(e.message?:"Something went wrong")
@@ -69,8 +72,7 @@ class AuthViewModel(
 
         try{
             val auth = firebaseRepository.register(email,password).await()
-            println("REGISTER")
-            println(auth.user)
+            setAuthStatus(true)
             return auth.user
         } catch (e:Exception){
             _authState.value = AuthState.Error(e.message?:"Something went wrong")

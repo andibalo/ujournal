@@ -32,12 +32,12 @@ class JournalEntryViewModel(
     private val _journalEntryState = MutableStateFlow<JournalEntryState>(JournalEntryState.Loading)
     val journalEntryState: StateFlow<JournalEntryState> get() = _journalEntryState
 
-    suspend fun getJournalEntries(): List<JournalEntry> {
+    suspend fun getJournalEntries(userID: String): List<JournalEntry> {
 
         _journalEntryState.value = JournalEntryState.Loading
 
         try {
-            val documents = firebaseRepository.getJournalEntries()
+            val documents = firebaseRepository.getJournalEntries(userID)
 
             val journalEntriesList = documents.map { document ->
 
@@ -105,7 +105,6 @@ class JournalEntryViewModel(
             if (document.exists()) {
                 val createdAt = document.data!!["createdAt"] as com.google.firebase.Timestamp
                 val updatedAt = document.data!!["updatedAt"] as? com.google.firebase.Timestamp
-
 
                 val journalEntry = JournalEntry(
                     id = document.id,

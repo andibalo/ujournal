@@ -45,7 +45,6 @@ class FirebaseRepositoryImpl(
     }
 
     override suspend fun getJournalEntryByID(id: String): DocumentSnapshot {
-        // TODO: query by user id
         val document = db.collection("journalEntries")
             .document(id)
             .get()
@@ -55,9 +54,9 @@ class FirebaseRepositoryImpl(
     }
 
 
-    override suspend fun getJournalEntries(): QuerySnapshot {
-        // TODO: query by user id
+    override suspend fun getJournalEntries(userID: String): QuerySnapshot {
         val documents = db.collection("journalEntries")
+            .whereEqualTo("userId", userID)
             .get()
             .await()
 
@@ -123,12 +122,25 @@ class FirebaseRepositoryImpl(
             "email" to user.email,
             "profileImageURL" to user.profileImageURL,
             "provider" to user.provider,
+            "createdAt" to FieldValue.serverTimestamp(),
+            "updatedAt" to null
         )
 
         return db
             .collection("users")
             .document(user.id)
             .set(userData)
+    }
+
+    override suspend fun updateUserProfileImageURL(userId: String, imageUri : String) : Task<Void> {
+        val userUpdateData = mapOf(
+            "profileImageURL" to imageUri,
+        )
+
+        return db
+            .collection("users")
+            .document(userId)
+            .update(userUpdateData)
     }
 
 

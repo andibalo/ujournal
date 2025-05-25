@@ -34,6 +34,7 @@ import id.ac.umn.ujournal.ui.navigation.uJournalAppScreens
 import id.ac.umn.ujournal.ui.util.UJournalNavigationContentPosition
 import id.ac.umn.ujournal.ui.util.hasRoute
 import id.ac.umn.ujournal.ui.util.isCompact
+import id.ac.umn.ujournal.viewmodel.AuthState
 import kotlinx.coroutines.launch
 
 enum class LayoutType {
@@ -50,8 +51,8 @@ fun UJournalNavigationWrapper(
     navController: NavHostController,
     content: @Composable UJournalNavSuiteScope.() -> Unit
 ) {
-    var isNavigationVisible by rememberSaveable { (mutableStateOf(true)) }
-    var isTopBarVisible by rememberSaveable { (mutableStateOf(true)) }
+    var isNavigationVisible by rememberSaveable { (mutableStateOf(false)) }
+    var isTopBarVisible by rememberSaveable { (mutableStateOf(false)) }
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val windowSize = with(LocalDensity.current) {

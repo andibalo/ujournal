@@ -1,17 +1,13 @@
 package id.ac.umn.ujournal.viewmodel
 
-import android.util.Log
-import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import id.ac.umn.ujournal.data.model.User
 import id.ac.umn.ujournal.data.repository.FirebaseRepository
+import id.ac.umn.ujournal.ui.util.toLocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 
 sealed class UserState {
     object Loading : UserState()
@@ -23,53 +19,43 @@ class UserViewModel(
     private val firebaseRepository: FirebaseRepository
 ) : ViewModel() {
 
-    // TODO: remove _users after backend integration
-    private val _users  = MutableStateFlow(getInitialUserListData())
+    private val _user  = MutableStateFlow<User?>(null)
 
-    val users: StateFlow<List<User>> get() = _users
-
-    // TODO: remove user dummy data
-    private val _userDummyData = MutableStateFlow<User?>(generateInitialUser())
+    val user: StateFlow<User?> get() = _user
 
     private val _userState = MutableStateFlow<UserState>(UserState.Loading)
     val userState: StateFlow<UserState> get() = _userState
 
-    fun loadUserData() {
-        viewModelScope.launch {
-            try {
-                val user = fetchUserFromRemote()
+    suspend fun loadUserData(): User {
+        if(firebaseRepository.getCurrentUser() == null){
+            throw Exception("Current user does not exist")
+        }
 
-                if(user == null) {
-                    throw Exception("User not found")
-                }
+        return fetchUserFromFirebase(firebaseRepository.getCurrentUser()!!.uid)
+    }
 
-                _userState.value = UserState.Success(user)
-            } catch (e: Exception) {
-                _userState.value = UserState.Error("Failed to load user")
-            }
+    suspend fun updateProfileImage(userId: String, imageUri: String) {
+        _userState.value = UserState.Loading
+
+        try{
+            firebaseRepository.updateUserProfileImageURL(userId, imageUri).await()
+
+            _user.value = _user.value?.copy(profileImageURL = imageUri)
+
+        } catch (e:Exception){
+            _userState.value = UserState.Error("Failed to update user profile image")
+            throw Exception(e.message?:"Something went wrong")
         }
     }
 
-    fun updateUserData(user: User) {
-        Log.d("UserViewModel", "Updating user data dummy: $user")
-
-        _userDummyData.update {
-           user
-        }
-
-        _userState.update {
-            UserState.Success(user)
-        }
-    }
-
-    suspend fun saveUserToFirestore(user : User){
+    suspend fun saveUser(user : User){
 
         _userState.value = UserState.Loading
 
         try{
             firebaseRepository.saveUser(user).await()
 
-            this.updateUserData(user)
+            _user.value = user
 
             _userState.value = UserState.Success(user)
 
@@ -79,103 +65,43 @@ class UserViewModel(
         }
     }
 
-    suspend fun fetchUserFromFirebase(userID : String) {
+    suspend fun fetchUserFromFirebase(userID : String) : User {
         _userState.value = UserState.Loading
 
         try{
-            val user = firebaseRepository.getUser(userID)
-            println("TEST")
-            println(user)
-//            this.updateUserData(user)
-//
-//            _userState.value = UserState.Success(user)
+            val document = firebaseRepository.getUser(userID).await()
 
+            if (!document.exists()) {
+                throw Exception("User not found")
+            }
+
+            val createdAt = document.data!!["createdAt"] as com.google.firebase.Timestamp
+            val updatedAt = document.data!!["updatedAt"] as? com.google.firebase.Timestamp
+
+            val user = User(
+                id = document.id,
+                firstName = document.data!!["firstName"] as String,
+                lastName = document.data!!["lastName"] as String?,
+                email = document.data!!["email"] as String,
+                profileImageURL  = document.data!!["profileImageURL"] as String?,
+                provider  = document.data!!["provider"] as String?,
+                createdAt = createdAt.toLocalDateTime(),
+                updatedAt  = updatedAt?.toLocalDateTime(),
+            )
+
+            _user.value = user
+
+            _userState.value = UserState.Success(user)
+            return user
         } catch (e:Exception){
             _userState.value = UserState.Error("Failed to save user")
             throw Exception(e.message?:"Something went wrong")
         }
     }
 
-    private suspend fun fetchUserFromRemote(): User? {
-        kotlinx.coroutines.delay(1000)
-        return _userDummyData.value
-    }
-
-    // TODO: remove after backend integration
-    fun createUser(user: User) {
-
-        val currentUserList = _users.value
-
-        val existingUser = currentUserList.firstOrNull { u ->
-            u.email == user.email
-        }
-
-        if(existingUser != null) {
-            throw Exception("User already exists")
-        }
-
-        Log.d("UserViewModel.addToUserList", "Current List: $currentUserList")
-
-        _users.update { currentEntries ->
-            listOf(user) + currentEntries
-        }
-
-        this.updateUserData(user)
-    }
-
-    // TODO: remove after backend integration
-    fun findAndSetUserData(email: String)  {
-        Log.d("UserViewModel.findAndSetUserData", "Current List: ${_users.value}")
-
-        val user = _users.value.firstOrNull { user ->
-            user.email == email
-        }
-
-        if(user == null) {
-            throw Exception("User not found")
-        }
-
-        _userDummyData.update {
-            user
-        }
-    }
-
-    // TODO: remove after backend integration
-    fun findUserByEmail(email: String) : User? {
-        Log.d("UserViewModel.findUserByEmail", "Current List: ${_users.value}")
-
-        val user = _users.value.firstOrNull { user ->
-            user.email == email
-        }
-
-        return user
-    }
-
-
-    // TODO: remove after backend integration
     fun logout()  {
-        _userDummyData.update {
+        _user.update {
             null
         }
-    }
-}
-
-// TODO: remove after backend integration
-private fun generateInitialUser(): User {
-    return User(
-        id = UUID.randomUUID().toString(),
-        firstName = "John",
-        lastName = "Doe",
-        email = "test@gmail.com",
-        password = "123456",
-        profileImageURL = "https://randomuser.me/api/portraits/men/75.jpg",
-        provider = null
-    )
-}
-
-// TODO: remove after backend integration
-fun getInitialUserListData(): List<User> {
-    return List(1) { index ->
-        generateInitialUser()
     }
 }

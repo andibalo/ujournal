@@ -14,10 +14,11 @@ interface FirebaseRepository {
     suspend fun register(email : String, password : String): Task<AuthResult>
     suspend fun loginWithGoogle(credential: Credential): Task<AuthResult>
     suspend fun getJournalEntryByID(id: String): DocumentSnapshot
-    suspend fun getJournalEntries(): QuerySnapshot
+    suspend fun getJournalEntries(userID : String): QuerySnapshot
     suspend fun saveJournalEntry(journalEntry: JournalEntry): Task<Void>
     suspend fun updateJournalEntryByID(id: String, journalEntry: JournalEntry): Task<Void>
     suspend fun deleteJournalEntryByID(id: String) : Task<Void>
+    suspend fun updateUserProfileImageURL(userId: String, imageUri : String) : Task<Void>
     suspend fun saveUser(user: User): Task<Void>
     suspend fun getUser(userID: String): Task<DocumentSnapshot>
     fun logout()

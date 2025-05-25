@@ -117,10 +117,6 @@ fun LoginScreen(
             try {
                 val userAuth = authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
 
-                if (userAuth == null){
-                    throw Exception("User data is null")
-                }
-
                 userViewModel.fetchUserFromFirebase(userAuth.uid)
 
                 authViewModel.setAuthStatus(true)
@@ -141,13 +137,13 @@ fun LoginScreen(
     fun onSignInWithGoogle() {
         scope.launch {
             try {
-                val userData = authViewModel.firebaseAuthWithGoogle(context)
+                val userAuth = authViewModel.firebaseAuthWithGoogle(context)
 
-                if (userData == null){
+                if (userAuth == null){
                     throw Exception("User data is null")
                 }
 
-                userViewModel.findAndSetUserData(email = userData.email!!)
+                userViewModel.fetchUserFromFirebase(userAuth.uid)
                 authViewModel.setAuthStatus(true)
                 navigateToHomeScreen()
             }catch (e: Exception){

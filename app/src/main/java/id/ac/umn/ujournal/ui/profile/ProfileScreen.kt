@@ -43,9 +43,11 @@ import id.ac.umn.ujournal.ui.components.common.UJournalBottomSheet
 import id.ac.umn.ujournal.ui.components.common.UJournalTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import id.ac.umn.ujournal.ui.components.common.LoadingScreen
 import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.components.common.snackbar.SnackbarController
 import id.ac.umn.ujournal.ui.components.common.snackbar.UJournalSnackBar
@@ -55,7 +57,6 @@ import id.ac.umn.ujournal.ui.util.shimmerLoading
 import id.ac.umn.ujournal.viewmodel.AuthViewModel
 import id.ac.umn.ujournal.viewmodel.ThemeMode
 import id.ac.umn.ujournal.viewmodel.ThemeViewModel
-import id.ac.umn.ujournal.viewmodel.UserState
 import id.ac.umn.ujournal.viewmodel.UserViewModel
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.quality
@@ -75,9 +76,9 @@ fun ProfileScreen(
     snackbarHostState: SnackbarHostState
 ) {
     val themeState by themeViewModel.themeMode.collectAsState()
-    val userState by userViewModel.userState.collectAsState()
-    val user = (userState as UserState.Success).user
-    var isLoading by rememberSaveable { mutableStateOf(false) }
+    val user by userViewModel.user.collectAsState()
+    var isUploadingProfilePicture by rememberSaveable { mutableStateOf(false) }
+    var isFetchingUserData by rememberSaveable { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
@@ -85,6 +86,21 @@ fun ProfileScreen(
     val snackbar = SnackbarController.current
     val storage = Firebase.storage(context.getString(R.string.firebase_bucket_url))
     val storageRef = storage.reference
+
+    LaunchedEffect(Unit) {
+        isFetchingUserData = true
+
+        try {
+            userViewModel.loadUserData()
+        } catch (e: Exception) {
+            snackbar.showMessage(
+                message = e.message ?: "Something went wrong",
+                severity = Severity.ERROR
+            )
+        } finally {
+            isFetchingUserData = false
+        }
+    }
 
     fun showBottomSheet() {
         coroutineScope.launch {
@@ -131,7 +147,7 @@ fun ProfileScreen(
 
     fun uploadProfileImage(it: Uri) {
         coroutineScope.launch {
-            isLoading = true
+            isUploadingProfilePicture = true
             try {
                 val originalFile = uriToFile(context, it)
                 Log.d("Upload", "Original size: ${formatFileSize(originalFile.length())}")
@@ -149,42 +165,12 @@ fun ProfileScreen(
                 val ext = it.getFileExtension(context)
                 val fileName = "${UUID.randomUUID()}_${currentDate}.${ext}"
 
-                val ref =
-                    storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
                 val compressedRef =
-                    storageRef.child("${context.getString(R.string.compressed_profile_picture_bucket_folder)}/${fileName}")
+                    storageRef.child("${context.getString(R.string.profile_picture_bucket_folder)}/${fileName}")
 
-                val fileUri = Uri.fromFile(originalFile)
                 val compressedFileUri = Uri.fromFile(compressedFile)
 
-                val originalUploadTask = ref.putFile(fileUri)
                 val compressedUploadTask = compressedRef.putFile(compressedFileUri)
-
-                var originalDone = false
-                var compressedDone = false
-
-                originalUploadTask.addOnSuccessListener {
-                    ref.metadata.addOnSuccessListener { metadata ->
-                        Log.d(
-                            "Firebase",
-                            "Uploaded original file size in Firebase Storage: ${
-                                formatFileSize(metadata.sizeBytes)
-                            }"
-                        )
-                    }
-                    originalDone = true
-                    if (compressedDone) {
-                        isLoading = false
-                        hideBottomSheet()
-                    }
-                }.addOnFailureListener { exception ->
-                    isLoading = false
-                    Log.e("Upload", "Upload failed: ${exception.message}")
-                    snackbar.showMessage(
-                        message = exception.message ?: "Upload failed: ${exception.message}",
-                        severity = Severity.ERROR
-                    )
-                }
 
                 compressedUploadTask.addOnSuccessListener {
                     compressedRef.metadata.addOnSuccessListener { metadata ->
@@ -195,26 +181,41 @@ fun ProfileScreen(
                     }
                     compressedRef.downloadUrl.addOnSuccessListener { uri ->
                         val downloadUrl = uri.toString()
-                        val updatedUser = user.copy(profileImageURL = downloadUrl)
 
-                        userViewModel.updateUserData(updatedUser)
-                    }
-                    compressedDone = true
-                    if (originalDone) {
-                        isLoading = false
-                        hideBottomSheet()
+                        coroutineScope.launch {
+                            try {
+                                userViewModel.updateProfileImage(user!!.id, downloadUrl)
+
+                                isUploadingProfilePicture = false
+                                hideBottomSheet()
+                            }catch (e: Exception){
+                                isUploadingProfilePicture = false
+
+                                Log.d("ProfileScreen.uploadProfileImage", e.message ?: "Unknown Error")
+                                Log.d("ProfileScreen.uploadProfileImage", e.stackTraceToString())
+
+                                snackbar.showMessage(
+                                    message = e.message ?: "Something went wrong",
+                                    severity = Severity.ERROR
+                                )
+                            }
+                        }
                     }
                 }.addOnFailureListener { exception ->
-                    isLoading = false
-                    Log.e("Upload", "Compression failed: ${exception.message}")
+                    isUploadingProfilePicture = false
+                    hideBottomSheet()
+
+                    Log.e("Upload", "Upload failed: ${exception.message}")
                     snackbar.showMessage(
-                        message = exception.message ?: "Compression failed: ${exception.message}",
+                        message = exception.message ?: "Upload failed: ${exception.message}",
                         severity = Severity.ERROR
                     )
                 }
 
             } catch (e: Exception) {
-                isLoading = false
+                isUploadingProfilePicture = false
+                hideBottomSheet()
+
                 Log.e("Upload", "Upload failed: ${e.message}")
                 snackbar.showMessage(
                     message = e.message ?: "Upload failed",
@@ -222,6 +223,11 @@ fun ProfileScreen(
                 )
             }
         }
+    }
+
+    if (isFetchingUserData) {
+        LoadingScreen()
+        return
     }
 
     Scaffold(
@@ -244,150 +250,153 @@ fun ProfileScreen(
             )
         },
     ) { innerPadding: PaddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(top = innerPadding.calculateTopPadding())
-                .fillMaxSize()
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
+        user?.let {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                       MaterialTheme.colorScheme.primary
-                    ), contentAlignment = Alignment.Center
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .fillMaxSize()
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier.padding(30.dp)
-                ) {
-                    if(isLoading){
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(120.dp)
-                                .clickable {
-                                    showBottomSheet()
-                                }
-                                .shimmerLoading()
-                            ,
-                        )
-                    } else {
-                        AsyncImage(
-                            model = user.profileImageURL ?: R.drawable.default_profile_picture,
-                            contentDescription = "Profile Picture",
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(120.dp)
-                                .clickable {
-                                    showBottomSheet()
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(
+                            MaterialTheme.colorScheme.primary
+                        ), contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Box(
+                        modifier = Modifier.padding(30.dp)
                     ) {
-                        Icon(
-                            Icons.Filled.Badge,
-                            contentDescription = "Name",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = user.firstName + " " + user.lastName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400
-                        )
-                    }
-                    Spacer(Modifier.padding(10.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.Mail,
-                            contentDescription = "Email",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = user.email,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400
-                        )
+                        if(isUploadingProfilePicture){
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(120.dp)
+                                    .clickable {
+                                        showBottomSheet()
+                                    }
+                                    .shimmerLoading()
+                                ,
+                            )
+                        } else {
+                            AsyncImage(
+                                model = it.profileImageURL ?: R.drawable.default_profile_picture,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(120.dp)
+                                    .clickable {
+                                        showBottomSheet()
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     }
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.secondary
-                )
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.padding(20.dp)
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                            .fillMaxWidth()
                     ) {
                         Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                Icons.Filled.DarkMode,
-                                contentDescription = "Dark Mode Toggle",
+                                Icons.Filled.Badge,
+                                contentDescription = "Name",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Dark Mode",
+                                text = it.firstName + " " + it.lastName,
                                 style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W400
                             )
                         }
-                        Switch(
-                            checked = themeState == ThemeMode.DARK,
-                            onCheckedChange = {
-                                themeViewModel.toggleTheme()
-                            }
-                        )
+                        Spacer(Modifier.padding(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.Mail,
+                                contentDescription = "Email",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = it.email,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W400
+                            )
+                        }
                     }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                     Column(
-                        modifier = Modifier.padding( vertical = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Button(
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                onLogoutClick()
-                            }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = "Logout"
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.DarkMode,
+                                    contentDescription = "Dark Mode Toggle",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Dark Mode",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                            Switch(
+                                checked = themeState == ThemeMode.DARK,
+                                onCheckedChange = {
+                                    themeViewModel.toggleTheme()
+                                }
                             )
                         }
-                        Spacer(Modifier.padding(8.dp))
-                        Text(
-                            text = "GoonPlatoon (Kelompok 3)",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                        Column(
+                            modifier = Modifier.padding( vertical = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Button(
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    onLogoutClick()
+                                }
+                            ) {
+                                Text(
+                                    text = "Logout"
+                                )
+                            }
+                            Spacer(Modifier.padding(8.dp))
+                            Text(
+                                text = "GoonPlatoon (Kelompok 3)",
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
                     }
                 }
             }
         }
+
 
         if (sheetState.isVisible) {
             UJournalBottomSheet(

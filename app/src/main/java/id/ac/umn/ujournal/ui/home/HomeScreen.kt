@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,6 +22,7 @@ import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.*
 import id.ac.umn.ujournal.ui.components.common.SearchBar
+import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.util.isCompact
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,11 +35,13 @@ fun HomeScreen(
     onJournalEntryClick: (journalEntryID: String) -> Unit = {},
 ) {
     val journalEntries by journalEntryViewModel.journalEntries.collectAsState()
-    val userState by userViewModel.userState.collectAsState()
+    val user by userViewModel.user.collectAsState()
+    var err by remember { mutableStateOf("") }
     var isSortedDescending by remember { mutableStateOf(true) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
     val lazyListState = rememberLazyListState()
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val sortedEntries by remember(journalEntries, isSortedDescending) {
         derivedStateOf {
@@ -61,16 +66,24 @@ fun HomeScreen(
     val adaptiveInfo = currentWindowAdaptiveInfo()
 
     LaunchedEffect(Unit) {
-        userViewModel.loadUserData()
-        journalEntryViewModel.getJournalEntries()
+        isLoading = true
+
+        try {
+            val u = userViewModel.loadUserData()
+            journalEntryViewModel.getJournalEntries(u.id)
+        } catch (e: Exception) {
+            err = e.message ?: "Something went wrong"
+        } finally {
+            isLoading = false
+        }
     }
 
-    if (userState is UserState.Loading) {
+    if (isLoading) {
         LoadingScreen()
         return
     }
 
-    if (userState is UserState.Error) {
+    if (err != "") {
         ErrorScreen()
         return
     }
@@ -88,8 +101,6 @@ fun HomeScreen(
                             ) togetherWith fadeOut(animationSpec = tween(90))
                         }
                     ) { targetState ->
-                        val user = (userState as UserState.Success).user
-
                         if (targetState) {
                             SearchBar(
                                 modifier = Modifier
@@ -111,7 +122,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth(),
                             ) {
-                                Text(text = "Hello, " + user.firstName)
+                                Text(text = "Hello, " + (user?.firstName ?: ""))
                             }
                         }
                     }

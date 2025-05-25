@@ -55,6 +55,7 @@ import io.konform.validation.constraints.notBlank
 import io.konform.validation.constraints.pattern
 import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.util.Locale
 import java.util.UUID
 
@@ -179,15 +180,14 @@ fun RegisterScreen(
                     },
                     email = emailInput,
                     profileImageURL = null,
-                    provider =  null,
-                    password = confirmPasswordInput,
+                    provider = null,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = null
                 )
 
-                userViewModel.saveUserToFirestore(
+                userViewModel.saveUser(
                     user
                 )
-
-                authViewModel.setAuthStatus(true)
 
                 navigateToHomeScreen()
             }catch (e: Exception){
@@ -212,11 +212,12 @@ fun RegisterScreen(
                     throw Exception("User data is null")
                 }
 
-                var existingUser = userViewModel.findUserByEmail(userData.email!!)
-
-                if(existingUser != null) {
-                    throw Exception("User already exists")
-                }
+                // TODO: fetch existing user from firebase
+//                var existingUser = userViewModel.findUserByEmail(userData.email!!)
+//
+//                if(existingUser != null) {
+//                    throw Exception("User already exists")
+//                }
 
                 val nameParts = userData.displayName!!.split(" ")
                 var firstName = nameParts[0].lowercase()
@@ -226,7 +227,7 @@ fun RegisterScreen(
                     lastName = nameParts[nameParts.size - 1].lowercase()
                 }
 
-                userViewModel.createUser(User(
+                userViewModel.saveUser(User(
                     id = UUID.randomUUID().toString(),
                     firstName = firstName.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
@@ -249,7 +250,8 @@ fun RegisterScreen(
                         null
                     },
                     provider =  "GOOGLE",
-                    password = null,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = null
                 ))
 
                 authViewModel.setAuthStatus(true)
