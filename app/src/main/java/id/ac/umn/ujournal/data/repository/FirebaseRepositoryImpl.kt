@@ -137,6 +137,7 @@ class FirebaseRepositoryImpl(
     override suspend fun updateUserProfileImageURL(userId: String, imageUri : String) : Task<Void> {
         val userUpdateData = mapOf(
             "profileImageURL" to imageUri,
+            "updatedAt" to FieldValue.serverTimestamp(),
         )
 
         return db
