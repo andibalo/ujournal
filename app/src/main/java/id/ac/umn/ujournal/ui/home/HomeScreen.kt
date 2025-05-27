@@ -22,7 +22,6 @@ import id.ac.umn.ujournal.ui.components.journalentry.*
 import id.ac.umn.ujournal.ui.util.isScrollingUp
 import id.ac.umn.ujournal.viewmodel.*
 import id.ac.umn.ujournal.ui.components.common.SearchBar
-import id.ac.umn.ujournal.ui.components.common.snackbar.Severity
 import id.ac.umn.ujournal.ui.util.isCompact
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,30 +181,42 @@ fun HomeScreen(
                 .fillMaxSize(),
             color = MaterialTheme.colorScheme.surface
         ) {
-            JournalEntryList(
-                list = filteredEntries,
-                modifier = Modifier.fillMaxSize(),
-                onJournalEntryClick = onJournalEntryClick,
-                state = lazyListState,
-                contentPadding = PaddingValues(8.dp),
-                listTopContent = {
-                    JournalEntryListSummary(
-                        modifier = Modifier.fillMaxWidth(),
-                        entriesCreated = journalEntries.size,
-                        dailyStreak = journalEntries.size
-                    )
-                    Spacer(Modifier.padding(bottom = 8.dp))
-                },
-                listHeaderContent = {
-                    JournalEntryListHeader(
-                        modifier = Modifier.fillMaxWidth(),
-                        onToggleSort = {
-                            isSortedDescending = !isSortedDescending
+            Column {
+                JournalEntryListSummary(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp, 8.dp, 8.dp,0.dp),
+                    entriesCreated = journalEntries.size,
+                    dailyStreak = journalEntries.size
+                )
+                if (filteredEntries.isEmpty()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = "No Journal Entries Yet",
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
+                } else {
+                    JournalEntryList(
+                        list = filteredEntries,
+                        modifier = Modifier.fillMaxSize(),
+                        onJournalEntryClick = onJournalEntryClick,
+                        state = lazyListState,
+                        contentPadding = PaddingValues(8.dp),
+                        listHeaderContent = {
+                            JournalEntryListHeader(
+                                modifier = Modifier.fillMaxWidth(),
+                                onToggleSort = {
+                                    isSortedDescending = !isSortedDescending
+                                },
+                                isSortedDescending = isSortedDescending
+                            )
                         },
-                        isSortedDescending = isSortedDescending
                     )
-                },
-            )
+                }
+            }
         }
     }
 }

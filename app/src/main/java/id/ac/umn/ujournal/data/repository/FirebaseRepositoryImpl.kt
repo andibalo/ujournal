@@ -84,6 +84,7 @@ class FirebaseRepositoryImpl(
     }
 
     override suspend fun updateJournalEntryByID(id: String, journalEntry: JournalEntry): Task<Void> {
+        val createdAt = journalEntry.createdAt.toDate()
 
         val journalEntryUpdateData = mapOf(
             "title" to journalEntry.title,
@@ -91,6 +92,7 @@ class FirebaseRepositoryImpl(
             "imageURI" to journalEntry.imageURI,
             "latitude" to journalEntry.latitude,
             "longitude" to journalEntry.longitude,
+            "createdAt"  to createdAt,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
 
@@ -135,6 +137,7 @@ class FirebaseRepositoryImpl(
     override suspend fun updateUserProfileImageURL(userId: String, imageUri : String) : Task<Void> {
         val userUpdateData = mapOf(
             "profileImageURL" to imageUri,
+            "updatedAt" to FieldValue.serverTimestamp(),
         )
 
         return db

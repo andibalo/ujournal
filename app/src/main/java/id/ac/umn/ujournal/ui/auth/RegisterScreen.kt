@@ -57,7 +57,6 @@ import io.konform.validation.messagesAtPath
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.Locale
-import java.util.UUID
 
 data class RegisterInput(
     var firstName: String = "",
@@ -189,6 +188,8 @@ fun RegisterScreen(
                     user
                 )
 
+                authViewModel.setAuthStatus(true)
+
                 navigateToHomeScreen()
             }catch (e: Exception){
 
@@ -206,9 +207,9 @@ fun RegisterScreen(
     fun onRegisterWithGoogle() {
         scope.launch {
             try {
-                val userData = authViewModel.firebaseAuthWithGoogle(context)
+                val userAuth = authViewModel.firebaseAuthWithGoogle(context)
 
-                if (userData == null){
+                if (userAuth == null){
                     throw Exception("User data is null")
                 }
 
@@ -219,7 +220,7 @@ fun RegisterScreen(
 //                    throw Exception("User already exists")
 //                }
 
-                val nameParts = userData.displayName!!.split(" ")
+                val nameParts = userAuth.displayName!!.split(" ")
                 var firstName = nameParts[0].lowercase()
                 var lastName = ""
 
@@ -228,7 +229,7 @@ fun RegisterScreen(
                 }
 
                 userViewModel.saveUser(User(
-                    id = UUID.randomUUID().toString(),
+                    id = userAuth.uid,
                     firstName = firstName.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
                             Locale.getDefault()
@@ -243,9 +244,9 @@ fun RegisterScreen(
                     } else {
                         null
                     },
-                    email = userData.email!!,
-                    profileImageURL = if(userData.photoUrl != null) {
-                        userData.photoUrl.toString()
+                    email = userAuth.email!!,
+                    profileImageURL = if(userAuth.photoUrl != null) {
+                        userAuth.photoUrl.toString()
                     } else {
                         null
                     },
