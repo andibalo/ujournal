@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +69,7 @@ fun LoginScreen(
     navigateToHomeScreen: () -> Unit = {},
     snackbarHostState: SnackbarHostState
 ) {
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     var emailInput by remember { mutableStateOf("") }
     var emailInputErrMsg by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
@@ -78,10 +80,12 @@ fun LoginScreen(
 
     val authState = authViewModel.authState.collectAsState()
 
-    LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.Authenticated -> navigateToHomeScreen()
-            else -> Unit
+    LaunchedEffect(authState.value, isLoading) {
+        if (!isLoading) {
+            when(authState.value){
+                is AuthState.Authenticated -> navigateToHomeScreen()
+                else -> Unit
+            }
         }
     }
 
@@ -114,6 +118,8 @@ fun LoginScreen(
         }
 
         scope.launch {
+            isLoading = true
+
             try {
                 val userAuth = authViewModel.firebaseAuthBasicLogin(emailInput, passwordInput)
 
@@ -130,12 +136,16 @@ fun LoginScreen(
                     message = e.message ?: "Something went wrong",
                     severity = Severity.ERROR
                 )
+            } finally {
+                isLoading = false
             }
         }
     }
 
     fun onSignInWithGoogle() {
         scope.launch {
+            isLoading = true
+
             try {
                 val userAuth = authViewModel.firebaseAuthWithGoogle(context)
 
@@ -158,6 +168,8 @@ fun LoginScreen(
 
                     authViewModel.logout()
                 }
+            } finally {
+                isLoading = false
             }
         }
     }

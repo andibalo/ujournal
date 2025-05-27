@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,15 +86,18 @@ fun RegisterScreen(
     var confirmPasswordInput by remember { mutableStateOf("") }
     var confirmPasswordInputErrMsg by remember { mutableStateOf("") }
     val snackbar = SnackbarController.current
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val authState = authViewModel.authState.collectAsState()
 
-    LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.Authenticated -> navigateToHomeScreen()
-            else -> Unit
+    LaunchedEffect(authState.value, isLoading) {
+        if (!isLoading) {
+            when(authState.value){
+                is AuthState.Authenticated -> navigateToHomeScreen()
+                else -> Unit
+            }
         }
     }
 
@@ -158,6 +162,8 @@ fun RegisterScreen(
         }
 
         scope.launch {
+            isLoading = true
+
             try {
                 val userAuth = authViewModel.firebaseAuthBasicRegister(emailInput, confirmPasswordInput)
 
@@ -200,12 +206,16 @@ fun RegisterScreen(
                     message = e.message ?: "Something went wrong",
                     severity = Severity.ERROR
                 )
+            } finally {
+                isLoading = false
             }
         }
     }
 
     fun onRegisterWithGoogle() {
         scope.launch {
+            isLoading = true
+
             try {
                 val userAuth = authViewModel.firebaseAuthWithGoogle(context)
 
@@ -270,6 +280,8 @@ fun RegisterScreen(
 
                     authViewModel.logout()
                 }
+            } finally {
+                isLoading = false
             }
         }
     }
