@@ -240,15 +240,6 @@ fun LoginScreen(
                 ) {
                     Text(text = "Login")
                 }
-                Button(
-                    shape = RoundedCornerShape(5.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        authViewModel.logout()
-                    }
-                ) {
-                    Text(text = "Login")
-                }
                 DividerText(
                     text = "Or continue with"
                 )
