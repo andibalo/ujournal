@@ -1,5 +1,6 @@
 package id.ac.umn.ujournal.ui.components.common.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,81 +50,93 @@ fun PermanentNavigationDrawerContent(
     navigationContentPosition: UJournalNavigationContentPosition,
     navController: NavHostController,
     onAddJournalClick: () -> Unit = {},
+    isVisible: Boolean
 ) {
-    PermanentDrawerSheet(
-        modifier = Modifier.sizeIn(minWidth = 200.dp, maxWidth = 300.dp),
-        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+    AnimatedVisibility(
+        visible = isVisible,
     ) {
-        Layout(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(16.dp),
-            content = {
-                Column(
-                    modifier = Modifier.layoutId(LayoutType.HEADER),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_blue),
-                        modifier = Modifier.fillMaxWidth().height(75.dp),
-                        contentDescription = "App Logo"
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(16.dp).fillMaxWidth(),
-                        text = "U-Journal",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    ExtendedFloatingActionButton(
-                        onClick = onAddJournalClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 40.dp),
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+        PermanentDrawerSheet(
+            modifier = Modifier.sizeIn(minWidth = 200.dp, maxWidth = 300.dp),
+            drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Layout(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(16.dp),
+                content = {
+                    Column(
+                        modifier = Modifier.layoutId(LayoutType.HEADER),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(
-                            Icons.Filled.Add,
-                            "Add new journal entry floating action button",
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_blue),
+                            modifier = Modifier.fillMaxWidth().height(75.dp),
+                            contentDescription = "App Logo"
                         )
                         Text(
-                            text = "Add Journal",
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            modifier = Modifier
+                                .padding(16.dp).fillMaxWidth(),
+                            text = "U-Journal",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
                         )
+                        ExtendedFloatingActionButton(
+                            onClick = onAddJournalClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 40.dp),
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ) {
+                            Icon(
+                                Icons.Filled.Add,
+                                "Add new journal entry floating action button",
+                            )
+                            Text(
+                                text = "Add Journal",
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
-                }
 
-                Column(
-                    modifier = Modifier
-                        .layoutId(LayoutType.CONTENT)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    TOP_LEVEL_DESTINATIONS.forEach { destination ->
-                        NavigationDrawerItem(
-                            selected = currentDestination.hasRoute(destination.route),
-                            label = {
-                                Text(
-                                    text = destination.name,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                            },
-                            icon = { destination.icon?.let { Icon(it, contentDescription = destination.route) } },
-                            colors = NavigationDrawerItemDefaults.colors(
-                                unselectedContainerColor = Color.Transparent
-                            ),
-                            onClick = { navController.navigate(destination.route) }
-                        )
+                    Column(
+                        modifier = Modifier
+                            .layoutId(LayoutType.CONTENT)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        TOP_LEVEL_DESTINATIONS.forEach { destination ->
+                            NavigationDrawerItem(
+                                selected = currentDestination.hasRoute(destination.route),
+                                label = {
+                                    Text(
+                                        text = destination.name,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                },
+                                icon = {
+                                    destination.icon?.let {
+                                        Icon(
+                                            it,
+                                            contentDescription = destination.route
+                                        )
+                                    }
+                                },
+                                colors = NavigationDrawerItemDefaults.colors(
+                                    unselectedContainerColor = Color.Transparent
+                                ),
+                                onClick = { navController.navigate(destination.route) }
+                            )
+                        }
                     }
-                }
-            },
-            measurePolicy = navigationMeasurePolicy(navigationContentPosition)
-        )
+                },
+                measurePolicy = navigationMeasurePolicy(navigationContentPosition)
+            )
+        }
     }
 }
 

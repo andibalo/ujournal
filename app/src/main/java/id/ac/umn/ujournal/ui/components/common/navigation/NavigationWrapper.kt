@@ -146,6 +146,7 @@ fun UJournalNavigationWrapper(
                         onAddJournalClick = {
                             navController.navigate(CreateJournalEntry.route)
                         },
+                        isVisible = isNavigationVisible
                     )
                 }
             }
