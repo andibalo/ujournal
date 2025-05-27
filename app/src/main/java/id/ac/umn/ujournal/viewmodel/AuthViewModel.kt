@@ -110,9 +110,9 @@ class AuthViewModel(
 
             val credential = result.credential
 
-            firebaseRepository.loginWithGoogle(credential).await()
+            val auth = firebaseRepository.loginWithGoogle(credential).await()
 
-            return firebaseRepository.getCurrentUser()
+            return auth.user
         } catch (e : Exception) {
             Log.d("AuthViewModel", e.toString())
 
